@@ -1,14 +1,17 @@
-package hms; // 'hms' 패키지에 속합니다.
+package hms;
 
-import hms.view.MainFrame; // hms.view 안의 MainFrame을 사용합니다.
+import hms.view.LoginFrame; // <-- LoginFrame을 import
 import javax.swing.SwingUtilities;
 
+/**
+ * 프로그램의 유일한 시작점
+ * LoginFrame을 실행합니다.
+ */
 public class App {
 
     static void main(String[] args) {
 
-        // SwingUtilities.invokeLater(() -> new MainFrame()); 과 동일한 의미입니다.
-        // "Swing 스레드에서 MainFrame의 생성자(new)를 실행해줘"
-        SwingUtilities.invokeLater(MainFrame::new);
+        // 실행할 클래스를 'LoginFrame::new'로 변경합니다.
+        SwingUtilities.invokeLater(LoginFrame::new);
     }
 }
