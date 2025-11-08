@@ -1,0 +1,2 @@
+admin,admin123,관리자,010-0000-0000,99,admin
+korea,aaaa,한국인,010-6606-3333,0,user
