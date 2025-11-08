@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)">
-      <change afterPath="$PROJECT_DIR$/src/hms/controller/UserController.java" afterDir="false" />
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="데이터베이스, (회원정보 등 담는역할)">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,18 +28,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Joymin12"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Joymin12&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Joymin12/HMS.git",
-    "accountId": "665c445d-39db-4181-967d-2c072c2deb39"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Joymin12/HMS.git&quot;,
+    &quot;accountId&quot;: &quot;665c445d-39db-4181-967d-2c072c2deb39&quot;
   }
-}]]></component>
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -90,7 +90,7 @@
       <updated>1762510758929</updated>
       <workItem from="1762510760633" duration="2000" />
       <workItem from="1762511237735" duration="928000" />
-      <workItem from="1762579377927" duration="868000" />
+      <workItem from="1762579377927" duration="1513000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />
@@ -156,11 +156,78 @@
       <option name="project" value="LOCAL" />
       <updated>1762580245258</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="로그인,회원가입,관리자 등 여러 기능을 수행하게끔 시키는 메서드 집합체">
+      <option name="closed" value="true" />
+      <created>1762580356545</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580356545</updated>
+    </task>
+    <task id="LOCAL-00010" summary="로그인,회원가입,관리자 등 여러 기능을 수행하게끔 시키는 메서드 집합체">
+      <option name="closed" value="true" />
+      <created>1762580417803</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580417803</updated>
+    </task>
+    <task id="LOCAL-00011" summary="데이터베이스, (회원정보 등 담는역할)">
+      <option name="closed" value="true" />
+      <created>1762580824972</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580824972</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="origin/main" />
+                </option>
+              </RecentGroup>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="main" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="origin/main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔" />
@@ -170,6 +237,8 @@
     <MESSAGE value="유일한 실행&#10;로그인 화면으로 전환해주는 클래스" />
     <MESSAGE value="유저 정보 클래스&#10;회원가입 시 사용자가 입력한 정보를 &#10;담아내는 클래스" />
     <MESSAGE value="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)" />
-    <option name="LAST_COMMIT_MESSAGE" value="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)" />
+    <MESSAGE value="로그인,회원가입,관리자 등 여러 기능을 수행하게끔 시키는 메서드 집합체" />
+    <MESSAGE value="데이터베이스, (회원정보 등 담는역할)" />
+    <option name="LAST_COMMIT_MESSAGE" value="데이터베이스, (회원정보 등 담는역할)" />
   </component>
 </project>
