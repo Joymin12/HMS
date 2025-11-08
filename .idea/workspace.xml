@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="데이터베이스, (회원정보 등 담는역할)">
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/model/UserDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/model/UserDataManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/MainFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,6 +94,8 @@
       <workItem from="1762510760633" duration="2000" />
       <workItem from="1762511237735" duration="928000" />
       <workItem from="1762579377927" duration="1513000" />
+      <workItem from="1762583193441" duration="245000" />
+      <workItem from="1762583448809" duration="2425000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />

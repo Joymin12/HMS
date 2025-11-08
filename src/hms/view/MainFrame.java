@@ -5,13 +5,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import hms.controller.UserController;
+import hms.model.User; // (★ 임포트 필요)
+import java.util.List; // (★ 임포트 필요)
+import java.util.ArrayList; // (★ 임포트 필요)
 
 /**
  * 메인 메뉴 화면
- * (★수정: '관리' 버튼이 isCurrentUserAdmin()을 호출)
+ * (★수정: '관리' 버튼이 '사용자 목록'을 보여주고 선택하여 삭제)
  */
 public class MainFrame extends JFrame {
 
+    // ▼▼▼ (오류 원인: 이 부분이 누락되었습니다) ▼▼▼
     private JLabel welcomeLabel;
     private UserController userController;
     private String loggedInUserName;
@@ -37,11 +41,13 @@ public class MainFrame extends JFrame {
 
         setVisible(true);
     }
+    // ▲▲▲ (여기까지) ▲▲▲
 
     /**
-     * <header> 생성 (회원탈퇴 버튼 포함, 변경 없음)
+     * <header> 생성 (회원탈퇴 버튼 포함)
      */
     private JPanel createHeaderPanel() {
+        // ▼▼▼ (오류 원인: 이 부분이 누락되었습니다) ▼▼▼
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(37, 99, 235));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
@@ -97,6 +103,9 @@ public class MainFrame extends JFrame {
         });
 
         JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        // ▲▲▲ (여기까지) ▲▲▲
+
+        // (님께서 붙여넣으신 코드의 시작 부분)
         buttonGroupPanel.setOpaque(false);
         buttonGroupPanel.add(logoutButton);
         buttonGroupPanel.add(deleteAccountButton);
@@ -143,17 +152,87 @@ public class MainFrame extends JFrame {
 
 
         // (★★★ '관리' 버튼 로직 수정 ★★★)
+        // (님이 붙여넣으신 옛날 코드가 아닌, 최종 기능이 적용된 코드입니다)
         btnManagement.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // (수정) 임시 팝업 대신 '컨트롤러'에게 물어봅니다.
+
+                // 1. 관리자인지 확인
                 if (userController.isCurrentUserAdmin()) {
-                    // 관리자가 맞으면
-                    JOptionPane.showMessageDialog(null, "관리 화면으로 이동합니다.");
-                    // TODO: new ManagementFrame().setVisible(true);
-                    // (나중에 ManagementFrame을 만들고 이 팝업 대신 띄우면 됩니다)
+
+                    // 2. '사용자 추가' / '사용자 삭제' 선택창 띄우기
+                    String[] options = {"사용자 추가", "사용자 삭제", "취소"};
+                    int choice = JOptionPane.showOptionDialog(
+                            null,
+                            "어떤 작업을 수행하시겠습니까?",
+                            "사용자 관리",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.PLAIN_MESSAGE,
+                            null,
+                            options,
+                            options[0]
+                    );
+
+                    if (choice == 0) { // 0: 사용자 추가
+                        // '회원가입' 창을 재사용합니다.
+                        new SignUpFrame();
+
+                    } else if (choice == 1) { // 1: 사용자 삭제
+                        // '사용자 삭제' 로직 시작
+
+                        // 3. 컨트롤러로부터 모든 사용자 목록을 가져옴
+                        List<User> userList = userController.getAllUsersList();
+
+                        // 4. 목록에서 'admin'과 '현재 로그인한 관리자'는 제거
+                        List<String> deletableUserList = new ArrayList<>();
+                        String currentAdminId = userController.getCurrentlyLoggedInUser().getId();
+
+                        for (User user : userList) {
+                            // 'admin' 계정이 아니고, '현재 로그인한 나'도 아니어야 함
+                            if (!user.getId().equals("admin") && !user.getId().equals(currentAdminId)) {
+                                deletableUserList.add(user.getId() + " (" + user.getName() + ")");
+                            }
+                        }
+
+                        // 5. 삭제할 유저가 없으면 알림
+                        if (deletableUserList.isEmpty()) {
+                            JOptionPane.showMessageDialog(null, "삭제할 수 있는 사용자가 없습니다.");
+                            return; // 작업 종료
+                        }
+
+                        // 6. 선택 가능한 목록(드롭다운)으로 변환
+                        Object[] selectionValues = deletableUserList.toArray();
+
+                        // 7. 드롭다운 팝업창 띄우기
+                        String selectedValue = (String) JOptionPane.showInputDialog(
+                                null,
+                                "삭제할 사용자를 선택하세요:",
+                                "사용자 삭제",
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                selectionValues, // (선택 목록)
+                                selectionValues[0] // (기본 선택값)
+                        );
+
+                        // 8. 사용자가 '취소'가 아닌 '확인'을 눌렀다면
+                        if (selectedValue != null) {
+                            // "korea (한국인)" -> "korea" (ID만 추출)
+                            String idToDelete = selectedValue.split(" ")[0];
+
+                            // 9. 삭제 실행
+                            boolean deleteSuccess = userController.deleteUserByAdmin(idToDelete);
+
+                            if (deleteSuccess) {
+                                JOptionPane.showMessageDialog(null, idToDelete + " 사용자가 삭제되었습니다.");
+                            } else {
+                                JOptionPane.showMessageDialog(null, "삭제에 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
+                    // choice == 2 (취소)는 아무 작업도 하지 않음
+
                 } else {
-                    // 일반 사용자면
+                    // 관리자가 아닐 때
                     JOptionPane.showMessageDialog(null,
                             "관리자가 아닌 다른 사용자는 사용이 제한됩니다.",
                             "접근 거부",
