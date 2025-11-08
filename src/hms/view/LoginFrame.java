@@ -1,20 +1,25 @@
 package hms.view;
 
 import hms.controller.UserController;
-import hms.model.User; // (★ 1/2) User 모델 임포트
+import hms.model.User;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+/**
+ * 로그인 화면 (View)
+ * (MainFrame에 userName과 userController를 전달)
+ */
 public class LoginFrame extends JFrame {
 
     private JTextField idField;
     private JPasswordField pwField;
+
+    // (중요) LoginFrame이 '주방장' 객체를 '소유'합니다.
     private UserController userController = new UserController();
 
     public LoginFrame() {
-        // ... (UI 코드는 이전과 동일) ...
         setTitle("호텔 관리 시스템 - 로그인");
         setSize(400, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -43,9 +48,8 @@ public class LoginFrame extends JFrame {
         buttonPanel.add(signupButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // --- (★ 2/2) 이벤트 리스너 수정 ---
+        // --- 이벤트 리스너 ---
 
-        // "로그인" 버튼 클릭 시
         // "로그인" 버튼 클릭 시
         loginButton.addActionListener(new ActionListener() {
             @Override
@@ -56,19 +60,15 @@ public class LoginFrame extends JFrame {
                 boolean loginSuccess = userController.login(id, password);
 
                 if (loginSuccess) {
-                    // (수정) 컨트롤러에서 로그인한 사용자 정보를 가져옴
                     User loggedInUser = userController.getCurrentlyLoggedInUser();
-                    String userName = loggedInUser.getName(); // '이름' 추출
+                    String userName = loggedInUser.getName();
 
-                    // ★★★ 사용자님이 요청하신 수정 라인 ★★★
-                    // "로그인 성공!" 대신 "안녕하세요! [이름]님!" 팝업을 띄웁니다.
                     JOptionPane.showMessageDialog(null, "안녕하세요! " + userName + "님!");
 
-                    dispose(); // 로그인 창 닫기
+                    dispose();
 
-                    // MainFrame에도 이름을 전달해서
-                    // "안녕하세요! [이름]님!" 메시지를 또 띄웁니다.
-                    new MainFrame(userName);
+                    // (★중요★) MainFrame을 열 때 '이름'과 '컨트롤러'를 전달
+                    new MainFrame(userName, userController);
 
                 } else {
                     JOptionPane.showMessageDialog(null,
@@ -79,10 +79,11 @@ public class LoginFrame extends JFrame {
             }
         });
 
-        // "회원가입" 버튼 클릭 시 (변경 없음)
+        // "회원가입" 버튼 클릭 시
         signupButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // (SignUpFrame은 자체적으로 Controller를 생성합니다)
                 new SignUpFrame();
             }
         });
