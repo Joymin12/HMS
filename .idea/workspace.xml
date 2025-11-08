@@ -4,15 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="시작 시 첫화면&#10;로그인, 회원가입 가능&#10;user.txt 파일과 일치했을때에 로그인 가능">
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)">
       <change afterPath="$PROJECT_DIR$/src/hms/controller/UserController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/model/User.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/model/UserDataManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/SignUpFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/App.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/MainFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,6 +40,9 @@
     "accountId": "665c445d-39db-4181-967d-2c072c2deb39"
   }
 }]]></component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -94,7 +90,7 @@
       <updated>1762510758929</updated>
       <workItem from="1762510760633" duration="2000" />
       <workItem from="1762511237735" duration="928000" />
-      <workItem from="1762579377927" duration="474000" />
+      <workItem from="1762579377927" duration="868000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />
@@ -112,7 +108,55 @@
       <option name="project" value="LOCAL" />
       <updated>1762512045246</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="시작 시 첫화면&#10;로그인, 회원가입 가능&#10;user.txt 파일과 일치했을때에 로그인 가능">
+      <option name="closed" value="true" />
+      <created>1762579919932</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1762579919932</updated>
+    </task>
+    <task id="LOCAL-00004" summary="로그인 성공 시 메인화면&#10;예약, 예약조회, 룸서비스, 체크인/아웃, 관리자 페이지">
+      <option name="closed" value="true" />
+      <created>1762580021175</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580021175</updated>
+    </task>
+    <task id="LOCAL-00005" summary="회원가입 화면&#10;아아디, 패스워드, 패스워드 확인, 이름, 전화번호, 나이 등&#10;입력 받는 화면">
+      <option name="closed" value="true" />
+      <created>1762580064786</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580064786</updated>
+    </task>
+    <task id="LOCAL-00006" summary="유일한 실행&#10;로그인 화면으로 전환해주는 클래스">
+      <option name="closed" value="true" />
+      <created>1762580091072</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580091072</updated>
+    </task>
+    <task id="LOCAL-00007" summary="유저 정보 클래스&#10;회원가입 시 사용자가 입력한 정보를 &#10;담아내는 클래스">
+      <option name="closed" value="true" />
+      <created>1762580130911</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580130911</updated>
+    </task>
+    <task id="LOCAL-00008" summary="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)">
+      <option name="closed" value="true" />
+      <created>1762580245258</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1762580245258</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -120,6 +164,12 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔" />
-    <option name="LAST_COMMIT_MESSAGE" value="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔" />
+    <MESSAGE value="시작 시 첫화면&#10;로그인, 회원가입 가능&#10;user.txt 파일과 일치했을때에 로그인 가능" />
+    <MESSAGE value="로그인 성공 시 메인화면&#10;예약, 예약조회, 룸서비스, 체크인/아웃, 관리자 페이지" />
+    <MESSAGE value="회원가입 화면&#10;아아디, 패스워드, 패스워드 확인, 이름, 전화번호, 나이 등&#10;입력 받는 화면" />
+    <MESSAGE value="유일한 실행&#10;로그인 화면으로 전환해주는 클래스" />
+    <MESSAGE value="유저 정보 클래스&#10;회원가입 시 사용자가 입력한 정보를 &#10;담아내는 클래스" />
+    <MESSAGE value="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)" />
+    <option name="LAST_COMMIT_MESSAGE" value="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)" />
   </component>
 </project>
