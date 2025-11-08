@@ -1,6 +1,6 @@
 package hms;
 
-import hms.view.LoginFrame; // <-- LoginFrame을 import
+import hms.view.LoginFrame;
 import javax.swing.SwingUtilities;
 
 /**
@@ -11,7 +11,7 @@ public class App {
 
     static void main(String[] args) {
 
-        // 실행할 클래스를 'LoginFrame::new'로 변경합니다.
+        // 프로그램 시작 시 LoginFrame을 띄웁니다.
         SwingUtilities.invokeLater(LoginFrame::new);
     }
 }
