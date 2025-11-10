@@ -5,7 +5,7 @@ import hms.model.UserDataManager;
 
 /**
  * '주방장' (Controller)
- * (★수정: isCurrentUserAdmin() 추가, signUp() 로직 변경)
+ * (★수정: isCurrentUserAdmin() 추가, signUp() 로직 변경, logout() 추가)
  */
 public class UserController {
 
@@ -46,9 +46,19 @@ public class UserController {
         }
     }
 
-    // ... (getCurrentlyLoggedInUser 메서드는 변경 없음) ...
+    /**
+     * 현재 로그인된 사용자를 반환합니다.
+     */
     public User getCurrentlyLoggedInUser() {
         return currentlyLoggedInUser;
+    }
+
+    /**
+     * (★신규★) 현재 로그인된 사용자를 로그아웃 처리합니다.
+     */
+    public void logout() {
+        this.currentlyLoggedInUser = null;
+        // 세션을 끊고 현재 로그인된 사용자 정보를 제거합니다.
     }
 
     /**
