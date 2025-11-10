@@ -4,8 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="Merge branch 'feature/reservation'&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml&#10;#&#9;data/userinfo.txt&#10;#&#9;src/hms/controller/UserController.java&#10;#&#9;src/hms/view/MainFrame.java">
+      <change afterPath="$PROJECT_DIR$/data/reservation_info.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/libs/jcalendar-1.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/AdminMainFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationManagerPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_GradePanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_InfoPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_RoomShowPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_SearchPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/UserMainFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HMS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/HMS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/userinfo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/userinfo.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/MainFrame.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,28 +70,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Pc/Desktop/HMS&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
-    &quot;애플리케이션.App.executor&quot;: &quot;Run&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "main 병합 중",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Pc/Desktop/HMS",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true",
+    "애플리케이션.App.executor": "Run"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -91,8 +110,6 @@
       <workItem from="1762510760633" duration="2000" />
       <workItem from="1762511237735" duration="928000" />
       <workItem from="1762579377927" duration="1513000" />
-      <workItem from="1762583193441" duration="245000" />
-      <workItem from="1762583448809" duration="2425000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />
