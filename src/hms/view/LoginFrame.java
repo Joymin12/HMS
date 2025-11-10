@@ -65,10 +65,17 @@ public class LoginFrame extends JFrame {
 
                     JOptionPane.showMessageDialog(null, "안녕하세요! " + userName + "님!");
 
-                    dispose();
+                    dispose(); // 로그인 창 닫기
 
-                    // (★중요★) MainFrame을 열 때 '이름'과 '컨트롤러'를 전달
-                    new MainFrame(userName, userController);
+                    // ★★★ 수정 지점: 권한 확인 및 메인 프레임 분기 ★★★
+                    if (userController.isCurrentUserAdmin()) {
+                        // 1. 관리자 권한일 경우
+                        new AdminMainFrame(userName, userController).setVisible(true); // AdminMainFrame 호출
+                    } else {
+                        // 2. 일반 사용자 권한일 경우
+                        new UserMainFrame(userName, userController).setVisible(true); // UserMainFrame 호출
+                    }
+                    // ★★★ 여기까지 수정이 필요합니다. ★★★
 
                 } else {
                     JOptionPane.showMessageDialog(null,
