@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/model/UserDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/model/UserDataManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/MainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/MainFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
