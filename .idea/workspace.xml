@@ -4,8 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="데이터베이스, (회원정보 등 담는역할)">
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="step1&#10;사용자가 예약할 시 체크인/아웃, 인원수 &#10;입력 받음. reservation_info.txt에&#10;데이터 저장">
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationFrame.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationManagerPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_InfoPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_RoomShowPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hms/view/UserMainFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/HMS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/HMS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/MainFrame.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,28 +60,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Pc/Desktop/HMS&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
-    &quot;애플리케이션.App.executor&quot;: &quot;Run&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/reservation",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Pc/Desktop/HMS",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true",
+    "애플리케이션.App.executor": "Run",
+    "애플리케이션.ReservationSearchPanel.executor": "Run"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -90,7 +101,10 @@
       <updated>1762510758929</updated>
       <workItem from="1762510760633" duration="2000" />
       <workItem from="1762511237735" duration="928000" />
-      <workItem from="1762579377927" duration="1513000" />
+      <workItem from="1762579377927" duration="7100000" />
+      <workItem from="1762661361283" duration="1037000" />
+      <workItem from="1762769615196" duration="1822000" />
+      <workItem from="1762783681606" duration="18827000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />
@@ -180,7 +194,95 @@
       <option name="project" value="LOCAL" />
       <updated>1762580824972</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary=".">
+      <option name="closed" value="true" />
+      <created>1762581023598</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1762581023598</updated>
+    </task>
+    <task id="LOCAL-00013" summary="예약 정보 저장 텍스트 파일">
+      <option name="closed" value="true" />
+      <created>1762804074485</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804074485</updated>
+    </task>
+    <task id="LOCAL-00014" summary="캘린더 라이브러리">
+      <option name="closed" value="true" />
+      <created>1762804091674</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804091674</updated>
+    </task>
+    <task id="LOCAL-00015" summary="회원가입 시 받는 정보 저장 텍스트 파일">
+      <option name="closed" value="true" />
+      <created>1762804121442</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804121442</updated>
+    </task>
+    <task id="LOCAL-00016" summary="인텔리제이 깃 추적 제외">
+      <option name="closed" value="true" />
+      <created>1762804154200</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804154200</updated>
+    </task>
+    <task id="LOCAL-00017" summary="ReservationController에 예약 시스템의 핵심 로직을 완성함.&#10;&#10;주요 변경 사항:&#10;1. 객실 중복 방지 로직 구현:&#10;   - getBookedRooms() 메소드를 완성하여 특정 기간의 날짜 겹침을 정확히 판정하고 예약된 객실 목록을 반환함.&#10;&#10;2. CRUD 기능 완성:&#10;   - saveReservationToFile(), searchReservation() 메소드의 파일 I/O 로직을 안정화함.&#10;   &#10;3. 데이터 무결성 연동:&#10;   - deleteReservationsByUserId() 메소드를 추가 및 구현하여, UserController의 회원 탈퇴 요청 시 해당 사용자의 모든 예약 정보가 파일에서 삭제되도록 연동함.">
+      <option name="closed" value="true" />
+      <created>1762804399376</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804399376</updated>
+    </task>
+    <task id="LOCAL-00018" summary="기존에서 로그아웃 추가">
+      <option name="closed" value="true" />
+      <created>1762804425250</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804425250</updated>
+    </task>
+    <task id="LOCAL-00019" summary="관리자 계정으로 로그인 시 화면">
+      <option name="closed" value="true" />
+      <created>1762804455681</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804455681</updated>
+    </task>
+    <task id="LOCAL-00020" summary="로그인 화면에서 관리자 , 사용자 구분">
+      <option name="closed" value="true" />
+      <created>1762804480163</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804480163</updated>
+    </task>
+    <task id="LOCAL-00021" summary="사용자가 예약할 시 객실 등급 선택">
+      <option name="closed" value="true" />
+      <created>1762804525406</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804525406</updated>
+    </task>
+    <task id="LOCAL-00022" summary="step1&#10;사용자가 예약할 시 체크인/아웃, 인원수 &#10;입력 받음. reservation_info.txt에&#10;데이터 저장">
+      <option name="closed" value="true" />
+      <created>1762804608647</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1762804608647</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -239,6 +341,17 @@
     <MESSAGE value="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)" />
     <MESSAGE value="로그인,회원가입,관리자 등 여러 기능을 수행하게끔 시키는 메서드 집합체" />
     <MESSAGE value="데이터베이스, (회원정보 등 담는역할)" />
-    <option name="LAST_COMMIT_MESSAGE" value="데이터베이스, (회원정보 등 담는역할)" />
+    <MESSAGE value="." />
+    <MESSAGE value="예약 정보 저장 텍스트 파일" />
+    <MESSAGE value="캘린더 라이브러리" />
+    <MESSAGE value="회원가입 시 받는 정보 저장 텍스트 파일" />
+    <MESSAGE value="인텔리제이 깃 추적 제외" />
+    <MESSAGE value="ReservationController에 예약 시스템의 핵심 로직을 완성함.&#10;&#10;주요 변경 사항:&#10;1. 객실 중복 방지 로직 구현:&#10;   - getBookedRooms() 메소드를 완성하여 특정 기간의 날짜 겹침을 정확히 판정하고 예약된 객실 목록을 반환함.&#10;&#10;2. CRUD 기능 완성:&#10;   - saveReservationToFile(), searchReservation() 메소드의 파일 I/O 로직을 안정화함.&#10;   &#10;3. 데이터 무결성 연동:&#10;   - deleteReservationsByUserId() 메소드를 추가 및 구현하여, UserController의 회원 탈퇴 요청 시 해당 사용자의 모든 예약 정보가 파일에서 삭제되도록 연동함." />
+    <MESSAGE value="기존에서 로그아웃 추가" />
+    <MESSAGE value="관리자 계정으로 로그인 시 화면" />
+    <MESSAGE value="로그인 화면에서 관리자 , 사용자 구분" />
+    <MESSAGE value="사용자가 예약할 시 객실 등급 선택" />
+    <MESSAGE value="step1&#10;사용자가 예약할 시 체크인/아웃, 인원수 &#10;입력 받음. reservation_info.txt에&#10;데이터 저장" />
+    <option name="LAST_COMMIT_MESSAGE" value="step1&#10;사용자가 예약할 시 체크인/아웃, 인원수 &#10;입력 받음. reservation_info.txt에&#10;데이터 저장" />
   </component>
 </project>
