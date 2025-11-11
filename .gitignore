@@ -8,6 +8,9 @@ out/
 !**/src/test/**/out/
 .kotlin
 
+# 사용자 개인의 작업 환경 정보이므로 Git 추적에서 제외합니다.
+.idea/workspace.xml
+
 ### Eclipse ###
 .apt_generated
 .classpath
