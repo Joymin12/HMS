@@ -123,10 +123,17 @@ public class ReservationController {
                 String[] parts = line.split(",", -1);
 
                 if (parts.length > 0 && parts[RES_IDX_ID].trim().equals(reservationId)) {
-                    if (parts.length == 12) {
-                        String[] newParts = new String[13];
-                        System.arraycopy(parts, 0, newParts, 0, 12);
-                        newParts[RES_IDX_STATUS] = STATUS_PENDING;
+                    // ⭐ [수정] 14개 필드 기준으로 확장하여 반환 (구형 데이터 호환성 유지)
+                    if (parts.length < RES_IDX_CHECKOUT_TIME + 1) {
+                        String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];
+                        System.arraycopy(parts, 0, newParts, 0, parts.length);
+
+                        if (parts.length <= RES_IDX_STATUS) {
+                            newParts[RES_IDX_STATUS] = STATUS_PENDING;
+                        }
+                        if (parts.length <= RES_IDX_CHECKOUT_TIME) {
+                            newParts[RES_IDX_CHECKOUT_TIME] = "";
+                        }
                         return newParts;
                     }
                     return parts;
