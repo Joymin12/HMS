@@ -182,8 +182,12 @@ public class CheckoutProcessPanel extends JPanel {
             // 1. 예약 상태를 '체크아웃 완료'로 변경 (Controller 호출)
             if (controller.processCheckout(roomNumber)) {
 
-                // 2. 룸서비스 요청 상태를 '결제 완료(Paid)' 상태로 변경
-                // 🚨 이 기능은 DataManager에 새로운 메서드 (예: updateStatusToPaidByRoom)와 상수 (STATUS_PAID)가 필요합니다.
+                // 2. ⭐ [활성화] 룸서비스 요청 상태를 '결제 완료(Paid)' 상태로 변경
+                boolean servicePaidSuccess = serviceManager.updateStatusByRoomAndStatus(
+                        roomNumber,
+                        RoomServiceDataManager.STATUS_COMPLETED,
+                        RoomServiceDataManager.STATUS_PAID
+                );
 
                 // 가상의 결제 완료 상태 업데이트 호출 (다음 작업 요청 시 DataManager에 추가할 수 있습니다)
                 // serviceManager.markRoomServiceAsPaid(roomNumber, RoomServiceDataManager.STATUS_COMPLETED);
@@ -197,6 +201,22 @@ public class CheckoutProcessPanel extends JPanel {
             } else {
                 JOptionPane.showMessageDialog(this,
                         "예약 또는 체크아웃 처리 중 오류가 발생했습니다.",
+                if (servicePaidSuccess) {
+                    JOptionPane.showMessageDialog(this,
+                            "체크아웃이 완료되고 청구서가 정산되었습니다.",
+                            "체크아웃 성공",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    parentFrame.switchPanel(CheckInOutFrame.MANAGEMENT_VIEW, null); // 관리 화면으로 복귀
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "체크아웃은 완료되었으나 룸서비스 정산 중 파일 오류가 발생했습니다. 수동 확인 필요.",
+                            "경고",
+                            JOptionPane.WARNING_MESSAGE);
+                    parentFrame.switchPanel(CheckInOutFrame.MANAGEMENT_VIEW, null);
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(this,
                         "오류",
                         JOptionPane.ERROR_MESSAGE);
             }
