@@ -252,4 +252,22 @@ public class UserMainFrame extends JFrame {
         button.add(titleLabel, BorderLayout.CENTER);
         return button;
     }
+
+    // =================================================================
+    // ⭐ [추가] 룸서비스 주문을 위한 Getter 메서드
+    // =================================================================
+
+    /**
+     * 룸서비스 주문 시 인증된 객실 번호를 반환합니다.
+     */
+    public String getAuthenticatedRoomNumber() {
+        return this.authenticatedRoomNumber;
+    }
+
+    /**
+     * RoomServiceOrderPanel이 ReservationController를 호출할 수 있도록 합니다.
+     */
+    public ReservationController getReservationController() {
+        return reservationController;
+    }
 }
