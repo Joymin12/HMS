@@ -20,6 +20,9 @@ public class UserMainFrame extends JFrame {
     // ⭐ [수정] ReservationController 필드를 선언하고 내부에서 생성합니다.
     private final ReservationController reservationController = new ReservationController();
 
+    // ⭐ [추가] 인증된 객실 번호를 임시로 저장할 필드
+    private String authenticatedRoomNumber = null;
+
     /**
      * [수정된 부분] 🚨 ReservationController 인수를 제거하고 2개의 인수만 받습니다.
      */
@@ -147,12 +150,66 @@ public class UserMainFrame extends JFrame {
 
         // 룸서비스 주문 액션 (임시 메시지)
         btnRoomService.addActionListener(e -> {
-            JDialog dialog = new JDialog(this, "룸서비스 주문", true);
-            JScrollPane scrollPane = new JScrollPane(new RoomServiceOrderPanel(this));
-            dialog.setContentPane(scrollPane);
-            dialog.setSize(750, 700);
-            dialog.setLocationRelativeTo(this);
-            dialog.setVisible(true);
+
+            // 1. 커스텀 UI를 위한 JTextField 생성
+            JTextField idField = new JTextField(6);
+            JTextField roomField = new JTextField(5);
+
+            // 2. 인증 패널 레이아웃 생성
+            JPanel authPanel = new JPanel(new BorderLayout(10, 10));
+            authPanel.add(new JLabel("<html><h3>객실 인증</h3>룸서비스를 이용하려면 예약 ID 6자리와 객실 번호를 입력해주세요.</html>"), BorderLayout.NORTH);
+
+            JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+            inputPanel.add(new JLabel("인증번호 (6자리):"));
+            inputPanel.add(idField);
+            inputPanel.add(new JLabel("객실번호:"));
+            inputPanel.add(roomField);
+
+            authPanel.add(inputPanel, BorderLayout.CENTER);
+
+            // 3. JOptionPane을 사용하여 커스텀 입력 다이얼로그 표시
+            int result = JOptionPane.showConfirmDialog(this,
+                    authPanel,
+                    "🍽️ 룸서비스 객실 인증",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE);
+
+            if (result == JOptionPane.OK_OPTION) {
+                String lastSixDigits = idField.getText().trim();
+                String roomNumber = roomField.getText().trim();
+
+                // 4. 입력 유효성 검사
+                if (!lastSixDigits.matches("\\d{6}") || roomNumber.isEmpty()) {
+                    JOptionPane.showMessageDialog(this,
+                            "인증번호는 6자리 숫자, 객실 번호는 필수 입력입니다.",
+                            "입력 오류", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // 5. ReservationController를 통한 인증 호출
+                boolean isAuthenticated = reservationController.validateReservationAndCheckIn(lastSixDigits, roomNumber);
+
+                if (isAuthenticated) {
+                    // 6. ⭐ 인증 성공 시: 객실 번호를 필드에 저장
+                    this.authenticatedRoomNumber = roomNumber;
+
+                    // 7. 룸서비스 주문 패널 띄우기
+                    JDialog dialog = new JDialog(this, "🍽️ 룸서비스 주문", true);
+                    JScrollPane scrollPane = new JScrollPane(new RoomServiceOrderPanel(this));
+                    dialog.setContentPane(scrollPane);
+                    dialog.setSize(750, 700);
+                    dialog.setLocationRelativeTo(this);
+                    dialog.setVisible(true);
+
+                    // 8. ⭐ 다이얼로그가 닫힐 때 인증 정보 초기화 (안전장치)
+                    this.authenticatedRoomNumber = null;
+
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "인증 정보가 일치하지 않거나 해당 객실이 체크인 상태가 아닙니다.",
+                            "인증 실패", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
 
 
