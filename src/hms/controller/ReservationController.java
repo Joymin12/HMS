@@ -272,7 +272,48 @@ public class ReservationController {
 
 
     // ---------------------------------------------------------------------
-    // 7. 체크아웃 처리 (Process Checkout) - CheckoutProcessPanel 요구 사항
+    // ⭐ [추가] 7. 룸서비스 객실 인증 (Authentication)
+    // ---------------------------------------------------------------------
+    /**
+     * 예약 ID 뒷 6자리와 객실 번호를 받아, 해당 예약이 CHECKED_IN 상태이며
+     * 입력된 객실 번호와 일치하는지 검증합니다.
+     * @param lastSixDigits 예약 ID의 뒷 6자리
+     * @param inputRoomNumber 사용자가 입력한 객실 번호
+     * @return 인증 및 체크인 상태가 유효하면 true
+     */
+    public boolean validateReservationAndCheckIn(String lastSixDigits, String inputRoomNumber) {
+        if (lastSixDigits == null || lastSixDigits.length() != 6 || inputRoomNumber == null || inputRoomNumber.isEmpty()) {
+            return false;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",", -1);
+
+                // 데이터 길이 확인
+                if (parts.length > RES_IDX_STATUS) {
+                    String reservationId = parts[RES_IDX_ID].trim();
+                    String roomNumber = parts[RES_IDX_ROOM_NUM].trim();
+                    String status = parts[RES_IDX_STATUS].trim();
+
+                    // ⭐ 3가지 조건 모두 충족 확인
+                    if (reservationId.length() >= 6 &&
+                            reservationId.endsWith(lastSixDigits) &&
+                            status.equals(STATUS_CHECKED_IN) &&
+                            roomNumber.equals(inputRoomNumber)) {
+
+                        return true; // 인증 성공
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("[ERROR] 룸서비스 객실 인증 중 파일 읽기 오류: " + e.getMessage());
+        }
+        return false; // 인증 실패 또는 I/O 오류
+    }
+
+
     // ---------------------------------------------------------------------
     /**
      * 특정 객실의 현재 체크인 상태 예약을 찾아 'CHECKED_OUT' 상태로 변경합니다.

@@ -4,10 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="fix: 하드코딩 제거">
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="commit -m test">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/reservation_info.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/reservation_info.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/room_service_requests.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/room_service_requests.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/RoomServiceOrderPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/RoomServiceOrderPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/UserMainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/UserMainFrame.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,7 +101,7 @@
       <workItem from="1762834889870" duration="13000" />
       <workItem from="1762834907673" duration="5633000" />
       <workItem from="1763098760287" duration="45159000" />
-      <workItem from="1763557527650" duration="6634000" />
+      <workItem from="1763557527650" duration="10163000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />
@@ -323,7 +327,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763570026867</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="commit -m test">
+      <option name="closed" value="true" />
+      <created>1763570070211</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1763570070211</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -373,7 +385,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="로그인 성공 시 메인화면&#10;예약, 예약조회, 룸서비스, 체크인/아웃, 관리자 페이지" />
     <MESSAGE value="회원가입 화면&#10;아아디, 패스워드, 패스워드 확인, 이름, 전화번호, 나이 등&#10;입력 받는 화면" />
     <MESSAGE value="유일한 실행&#10;로그인 화면으로 전환해주는 클래스" />
     <MESSAGE value="유저 정보 클래스&#10;회원가입 시 사용자가 입력한 정보를 &#10;담아내는 클래스" />
@@ -398,6 +409,7 @@
     <MESSAGE value="feat: CheckoutProcessPanel에서 체크아웃 성공, 실패, 오류 처리 로직 추가" />
     <MESSAGE value="fix: 테스트용 하드코딩 제거 및 데이터를 기반으로 하게끔 적용" />
     <MESSAGE value="fix: 하드코딩 제거" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: 하드코딩 제거" />
+    <MESSAGE value="commit -m test" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit -m test" />
   </component>
 </project>
