@@ -128,17 +128,15 @@ public class CheckoutProcessPanel extends JPanel {
     private long calculateRoomServiceCost(String roomNumber) {
         long totalCost = 0;
 
-        // DataManager에 getRequestsByRoomAndStatus(String, String) 메서드가 있다고 가정
         List<String[]> completedRequests = serviceManager.getRequestsByStatus(RoomServiceDataManager.STATUS_COMPLETED);
 
         for (String[] request : completedRequests) {
-            String reqRoomNum = request[1]; // 객실 번호는 Index 1
+            String reqRoomNum = request[1]; // 객실 번호는 Index 1 (DataManager 포맷)
 
             if (reqRoomNum.equals(roomNumber)) {
                 try {
                     totalCost += Long.parseLong(request[3]); // 금액은 Index 3
                 } catch (NumberFormatException ignored) {
-                    // 오류 무시
                 }
             }
         }
