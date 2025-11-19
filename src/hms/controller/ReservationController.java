@@ -17,7 +17,9 @@ public class ReservationController {
     public static final String STATUS_CHECKED_OUT = "CHECKED_OUT"; // 체크아웃 완료 상태
     public static final int RES_IDX_ID = 0; // 예약 ID 인덱스
     public static final int RES_IDX_ROOM_NUM = 9; // 객실 번호 인덱스
+    public static final int RES_IDX_TOTAL_PRICE = 10; // ⭐ [상수 추가] 총 요금 인덱스
     public static final int RES_IDX_STATUS = 12; // 상태 인덱스
+    public static final int RES_IDX_CHECKOUT_TIME = 13; // ⭐ [상수 추가] 체크아웃 시간 인덱스 (14번째 필드)
 
     // ---------------------------------------------------------------------
     // 1. 예약 저장 (Save Reservation)
