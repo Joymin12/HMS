@@ -1,31 +1,34 @@
 package hms.view;
 
 import hms.controller.ReservationController;
-import com.toedter.calendar.JDateChooser;
+import hms.controller.UserController;
+import hms.model.User; // User 모델 사용을 위해 import 가정
 import javax.swing.*;
 import java.awt.*;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 예약의 4단계를 모두 관리하는 최종 메인 패널 (Central Mediator).
  */
 public class ReservationManagerPanel extends JPanel {
 
-    // --- 1. 멤버 변수 ---
-    private CardLayout cardLayout;
-    private JPanel cardsPanel;
+    // ----------------------------------------------------------------
+    // 1. 필드 선언 영역 (CardLayout, Controllers, Sub-Panels, State)
+    // ----------------------------------------------------------------
+    private CardLayout cardLayout = new CardLayout();
+    private JPanel cardsPanel = new JPanel(cardLayout);
 
     private ReservationFrame reservationFrame;
-    private JFrame ultimateParentFrame; // ★ 최종 부모 프레임 필드 추가 (UserMainFrame/AdminMainFrame)
+    private JFrame ultimateParentFrame;
     private ReservationController reservationController;
+    private UserController userController;
 
-    // --- 2. 단계별 패널 (멤버 변수) ---
     private Reservation_SearchPanel step1_search;
     private Reservation_GradePanel  step2_grade;
     private Reservation_RoomShowPanel step3_roomShow;
@@ -41,38 +44,39 @@ public class ReservationManagerPanel extends JPanel {
     private long nights = 0;
     private long totalPrice = 0;
 
+
     // ----------------------------------------------------
-    // ★★★ 생성자: 2개의 인수를 받도록 수정 ★★★
+    // 2. 생성자: 4개의 인수를 받도록 확정
     // ----------------------------------------------------
-    public ReservationManagerPanel(ReservationFrame reservationFrame, JFrame ultimateParentFrame) { // ★ 인수 2개로 수정
+    public ReservationManagerPanel(ReservationFrame reservationFrame,
+                                   JFrame ultimateParentFrame,
+                                   ReservationController reservationController,
+                                   UserController userController) {
         this.reservationFrame = reservationFrame;
-        this.ultimateParentFrame = ultimateParentFrame; // ★ 최종 부모 저장
-        this.reservationController = new ReservationController();
+        this.ultimateParentFrame = ultimateParentFrame;
+        this.reservationController = reservationController;
+        this.userController = userController;
 
-        cardLayout = new CardLayout();
-        cardsPanel = new JPanel(cardLayout);
-
-        // 단계별 패널 생성
+        // ⭐⭐⭐ [핵심 수정] 실제 패널 객체를 인스턴스화하고 CardLayout에 추가합니다. ⭐⭐⭐
         step1_search = new Reservation_SearchPanel(this);
         step2_grade = new Reservation_GradePanel(this);
         step3_roomShow = new Reservation_RoomShowPanel(this);
         step4_info = new Reservation_InfoPanel(this);
 
-        // cardsPanel에 추가
         cardsPanel.add(step1_search, "search");
         cardsPanel.add(step2_grade, "step2_grade");
         cardsPanel.add(step3_roomShow, "roomShow");
         cardsPanel.add(step4_info, "info");
 
+
         setLayout(new BorderLayout());
         add(cardsPanel, BorderLayout.CENTER);
-
         cardLayout.show(cardsPanel, "search");
     }
 
 
     // =================================================================
-    // ★★★ 4개 패널과 통신하는 핵심 위임 메소드들 (모든 오류 해결) ★★★
+    // 3. 핵심 위임 메소드들 (단계 전환 및 데이터 처리)
     // =================================================================
 
     /**
@@ -80,9 +84,14 @@ public class ReservationManagerPanel extends JPanel {
      */
     public void showStep(String stepName) {
         if (stepName.equals("roomShow")) {
-            step3_roomShow.updateRoomGrid();
+            // ⭐ [오류 해결] 이 메서드를 호출해야 방 목록이 화면에 그려집니다.
+            if (step3_roomShow != null) {
+                step3_roomShow.updateRoomGrid();
+            }
         } else if (stepName.equals("info")) {
-            step4_info.updateSummary(); // 4단계 정보 업데이트 호출
+            if (step4_info != null) {
+                step4_info.updateSummary(); // 4단계 정보 업데이트 호출
+            }
         }
         cardLayout.show(cardsPanel, stepName);
     }
@@ -119,13 +128,6 @@ public class ReservationManagerPanel extends JPanel {
     }
 
     /**
-     * [Step 2/3] 현재 선택된 등급을 반환합니다.
-     */
-    public String getSelectedGrade() {
-        return selectedGrade;
-    }
-
-    /**
      * [Step 3] Controller를 통해 예약된 객실 목록을 반환합니다.
      */
     public List<String> getBookedRooms() {
@@ -154,17 +156,18 @@ public class ReservationManagerPanel extends JPanel {
         this.totalPrice = (long) basePricePerNight * nights;
     }
 
-    // --- Getter 메소드 (Step 4에서 사용) ---
-    public long getNights() { return nights; }
-    public long getTotalPrice() { return totalPrice; }
-    public String getSelectedRoom() { return selectedRoom; }
-    public Date getCheckInDate() { return checkInDate; }
-    public Date getCheckOutDate() { return checkOutDate; }
-    public int getGuestCount() { return guestCount; }
+    // --- Getter 메소드 (Reservation_InfoPanel에서 필요했던 모든 Getter) ---
+    public long getTotalPrice() { return this.totalPrice; }
+    public Date getCheckInDate() { return this.checkInDate; }
+    public Date getCheckOutDate() { return this.checkOutDate; }
+    public long getNights() { return this.nights; }
+    public int getGuestCount() { return this.guestCount; }
+    public String getSelectedGrade() { return selectedGrade; } // Line 240 오류 해결
+    public String getSelectedRoom() { return this.selectedRoom; }
 
 
     // =================================================================
-    // 🏠 메인 복귀 메소드 (오류 해결 및 복귀 흐름 제어)
+    // 4. 복귀 및 저장 메소드
     // =================================================================
 
     /**
@@ -179,7 +182,6 @@ public class ReservationManagerPanel extends JPanel {
 
         if (result == JOptionPane.YES_OPTION) {
             reservationFrame.dispose();
-            // 취소 시에도 최종 부모 창이 다시 보이게 합니다.
             if (ultimateParentFrame != null) {
                 ultimateParentFrame.setVisible(true);
             }
@@ -192,7 +194,6 @@ public class ReservationManagerPanel extends JPanel {
     public void goBackToMain(boolean reservationCompleted) {
         if (reservationCompleted) {
             reservationFrame.dispose();
-            // 성공 시 최종 부모 창이 다시 보이게 합니다.
             if (ultimateParentFrame != null) {
                 ultimateParentFrame.setVisible(true);
             }
@@ -201,29 +202,59 @@ public class ReservationManagerPanel extends JPanel {
         }
     }
 
-    // =================================================================
-    // 💾 최종 저장 메소드 (finalSaveReservation 메소드)
-    // =================================================================
+    /**
+     * 현재 로그인된 사용자 ID를 가져오는 메소드 (User 모델 사용)
+     */
+    public String getCurrentUserId() {
+        if (userController != null) {
+            User currentUser = userController.getCurrentlyLoggedInUser();
+            if (currentUser != null) {
+                return currentUser.getId();
+            }
+        }
+        return "GUEST";
+    }
 
-    public void finalSaveReservation(String customerName, String phoneNumber, String paymentMethod) {
+    /**
+     * 최종 예약 저장 메소드 (Reservation_InfoPanel에서 호출)
+     */
+    public void finalSaveReservation(
+            String customerName,
+            String phoneNumber,
+            String paymentMethod,
+            String estimatedInTime,
+            String estimatedOutTime
+    ) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
         // 1. 최종 데이터 맵 구성
         Map<String, Object> finalData = new HashMap<>();
-        finalData.put("customerName", customerName);
-        finalData.put("phoneNumber", phoneNumber);
-        finalData.put("checkIn", new SimpleDateFormat("yyyy-MM-dd").format(checkInDate));
-        finalData.put("checkOut", new SimpleDateFormat("yyyy-MM-dd").format(checkOutDate));
+
+        // Step 1~3 데이터 (멤버 변수에서 가져옴)
+        finalData.put("checkIn", dateFormat.format(checkInDate));
+        finalData.put("checkOut", dateFormat.format(checkOutDate));
         finalData.put("guests", guestCount);
         finalData.put("grade", selectedGrade);
         finalData.put("room", selectedRoom);
         finalData.put("totalPrice", totalPrice);
+
+        // Step 4 데이터 (인자로 받음)
+        finalData.put("customerName", customerName);
+        finalData.put("phoneNumber", phoneNumber);
         finalData.put("paymentMethod", paymentMethod);
+        finalData.put("estimatedInTime", estimatedInTime);
+        finalData.put("estimatedOutTime", estimatedOutTime);
+
+        // ⭐ 사용자 ID 추가 (누가 예약했는지 기록)
+        finalData.put("userId", getCurrentUserId());
+
 
         // 2. Controller를 통해 파일 저장 요청
         boolean success = reservationController.saveReservationToFile(finalData);
 
         if (success) {
             JOptionPane.showMessageDialog(reservationFrame, "예약이 성공적으로 완료되었습니다!", "예약 완료", JOptionPane.INFORMATION_MESSAGE);
-            goBackToMain(true); // 성공했으니 확인 없이 메인으로 복귀
+            goBackToMain(true);
         } else {
             JOptionPane.showMessageDialog(reservationFrame, "예약 저장 중 오류가 발생했습니다.", "시스템 오류", JOptionPane.ERROR_MESSAGE);
         }

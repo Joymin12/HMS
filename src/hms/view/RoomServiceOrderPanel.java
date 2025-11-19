@@ -6,11 +6,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.awt.event.ActionListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.awt.Window;
-import java.awt.event.WindowAdapter;
 
 /**
  * 🍴 [사용자] 룸서비스 메뉴를 표시하고 주문을 받는 패널.
@@ -28,6 +26,8 @@ public class RoomServiceOrderPanel extends JPanel {
     private JTextField quantityField;
     private JLabel totalLabel;
 
+    private JComboBox<String> categoryFilter;
+
     // ⭐ [수정] 생성자 시그니처를 UserMainFrame으로 변경 (연결 오류 해결)
     public RoomServiceOrderPanel(UserMainFrame parentFrame) {
         this.parentFrame = parentFrame;
@@ -38,7 +38,7 @@ public class RoomServiceOrderPanel extends JPanel {
 
         // --- 1. 메뉴 목록 표시 영역 ---
         JPanel menuListPanel = createMenuListPanel();
-        add(menuListPanel, BorderLayout.NORTH);
+        add(menuListPanel, BorderLayout.NORTH); // NORTH 영역
 
         // --- 2. 주문/장바구니 영역 ---
         JPanel orderCartPanel = createOrderCartPanel();
@@ -48,6 +48,7 @@ public class RoomServiceOrderPanel extends JPanel {
         JPanel footerPanel = createFooterPanel();
         add(footerPanel, BorderLayout.SOUTH);
 
+        loadCategories();
         loadMenuData();
     }
 
@@ -64,7 +65,31 @@ public class RoomServiceOrderPanel extends JPanel {
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder("메뉴 목록"));
-        panel.add(new JScrollPane(menuTable), BorderLayout.CENTER);
+
+        // 필터링 컨트롤 패널 생성
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        categoryFilter = new JComboBox<>();
+        filterPanel.add(new JLabel("카테고리 필터:"));
+        filterPanel.add(categoryFilter);
+
+        // 필터 변경 시 액션 리스너 연결
+        categoryFilter.addActionListener(this::handleCategoryFilterChange);
+
+        JScrollPane scrollPane = new JScrollPane(menuTable);
+        // ⭐ [핵심 수정 1] 세로 스크롤바 제거
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        // ⭐ [핵심 수정 2] 수평 스크롤바 제거
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        // 메뉴 목록 창 높이를 150px로 줄입니다. (preferredSize 설정)
+        scrollPane.setPreferredSize(new Dimension(700, 150));
+
+
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.add(filterPanel, BorderLayout.NORTH);
+        northPanel.add(scrollPane, BorderLayout.CENTER);
+
+        panel.add(northPanel, BorderLayout.CENTER);
         return panel;
     }
 
@@ -86,23 +111,26 @@ public class RoomServiceOrderPanel extends JPanel {
         cartTableModel = new DefaultTableModel(cartColumns, 0);
         cartTable = new JTable(cartTableModel);
 
-        // ⭐ [추가] 장바구니 제거 버튼 생성 및 패널
+        // ⭐ [수정] 장바구니 테이블의 높이를 줄이기 위해 JScrollPane의 preferredSize를 설정합니다.
+        JScrollPane cartScrollPane = new JScrollPane(cartTable);
+        cartScrollPane.setPreferredSize(new Dimension(350, 150)); // 높이를 150px로 설정 (메뉴 목록과 유사하게)
+
+        // 장바구니 제거 버튼 생성 및 패널
         JButton removeButton = new JButton("🗑️ 선택 항목 제거");
         JPanel cartButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         cartButtonsPanel.add(removeButton);
 
         JPanel cartPanel = new JPanel(new BorderLayout());
         cartPanel.setBorder(BorderFactory.createTitledBorder("장바구니"));
-        cartPanel.add(new JScrollPane(cartTable), BorderLayout.CENTER);
+        cartPanel.add(cartScrollPane, BorderLayout.CENTER); // ⭐ JScrollPane 사용
         cartPanel.add(inputPanel, BorderLayout.NORTH);
-        // ⭐ [추가] 장바구니 하단에 제거 버튼 패널 추가
+        // 장바구니 하단에 제거 버튼 패널 추가
         cartPanel.add(cartButtonsPanel, BorderLayout.SOUTH);
 
         mainPanel.add(cartPanel);
 
         // --- 액션 리스너 ---
         addButton.addActionListener(this::handleAddToCart);
-        // ⭐ [추가] 제거 버튼 액션 리스너 추가
         removeButton.addActionListener(this::handleRemoveFromCart);
 
         return mainPanel;
@@ -124,15 +152,36 @@ public class RoomServiceOrderPanel extends JPanel {
     }
 
     // =================================================================
-    // ★ 데이터 로드 및 액션 로직 ★
+    // ★ 데이터 로드 및 액션 로직 (유지) ★
     // =================================================================
 
+    private void handleCategoryFilterChange(ActionEvent e) {
+        if (categoryFilter.getSelectedItem() != null) {
+            loadMenuData();
+        }
+    }
+
+    private void loadCategories() {
+        List<String> categories = dataManager.getAllCategories();
+
+        categoryFilter.removeAllItems();
+        categoryFilter.addItem("전체 메뉴");
+
+        for (String category : categories) {
+            categoryFilter.addItem(category);
+        }
+    }
+
     private void loadMenuData() {
+        String selectedCategory = (String) categoryFilter.getSelectedItem();
+        if (selectedCategory != null && selectedCategory.equals("전체 메뉴")) {
+            selectedCategory = null;
+        }
+
         menuTableModel.setRowCount(0);
-        List<String[]> menuItems = dataManager.getAllMenu();
+        List<String[]> menuItems = dataManager.getMenuByCategory(selectedCategory);
 
         for (String[] item : menuItems) {
-            // [ID, Name, Price, Category] (4개 필드 기준)
             menuTableModel.addRow(new Object[]{
                     item[0], item[1], item[2], item[3]
             });
@@ -154,19 +203,16 @@ public class RoomServiceOrderPanel extends JPanel {
                 return;
             }
 
-            // 메뉴 데이터 가져오기
             String id = (String) menuTableModel.getValueAt(selectedRow, 0);
             String name = (String) menuTableModel.getValueAt(selectedRow, 1);
             String priceStr = (String) menuTableModel.getValueAt(selectedRow, 2);
-            // Long.parseLong을 위해 숫자 외 문자 제거
             long price = Long.parseLong(priceStr.replaceAll("[^0-9]", ""));
 
-            // 장바구니에 추가
             cartTableModel.addRow(new Object[]{
                     id,
                     name,
                     quantity,
-                    String.format("%,d", price * quantity) // 금액 포맷팅
+                    String.format("%,d", price * quantity)
             });
 
             updateTotal();
@@ -176,9 +222,6 @@ public class RoomServiceOrderPanel extends JPanel {
         }
     }
 
-    /**
-     * ⭐ [추가] 장바구니에서 선택된 항목을 제거하는 로직
-     */
     private void handleRemoveFromCart(ActionEvent e) {
         int selectedRow = cartTable.getSelectedRow();
 
@@ -187,10 +230,7 @@ public class RoomServiceOrderPanel extends JPanel {
             return;
         }
 
-        // 선택된 행을 모델에서 제거
         cartTableModel.removeRow(selectedRow);
-
-        // 총액 업데이트
         updateTotal();
     }
 
@@ -206,13 +246,11 @@ public class RoomServiceOrderPanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
 
-            // ⭐ 1. 주문 데이터 수집 (구분자 충돌 해결)
             StringBuilder itemSummary = new StringBuilder();
             long totalAmount = 0;
 
             for (int i = 0; i < cartTableModel.getRowCount(); i++) {
                 String name = (String) cartTableModel.getValueAt(i, 1);
-                // 장바구니에 수량이 Integer 타입으로 들어갔다고 가정
                 int quantity = (Integer) cartTableModel.getValueAt(i, 2);
                 String formattedPrice = (String) cartTableModel.getValueAt(i, 3);
 
@@ -220,20 +258,18 @@ public class RoomServiceOrderPanel extends JPanel {
 
                 itemSummary.append(name).append(" x ").append(quantity);
                 if (i < cartTableModel.getRowCount() - 1) {
-                    itemSummary.append("; "); // ⭐ [핵심 수정] 항목 간의 구분자를 세미콜론(; )으로 변경
+                    itemSummary.append("; ");
                 }
             }
 
-            // ⭐ 2. 현재 사용자 객실 번호 가져오기 (임시값 사용)
+            // 하드 코딩 값 유지
             String roomNumber = "101";
 
-            // 3. DataManager 호출 및 저장
             String newId = dataManager.addServiceRequest(roomNumber, itemSummary.toString(), totalAmount);
 
             if (newId != null) {
                 JOptionPane.showMessageDialog(this, "룸서비스 주문이 요청되었습니다! (ID: " + newId + ")", "주문 완료", JOptionPane.INFORMATION_MESSAGE);
 
-                // 주문 완료 후 창을 닫아 UserMainFrame으로 복귀
                 Window w = SwingUtilities.getWindowAncestor(this);
                 if (w != null) {
                     w.dispose();

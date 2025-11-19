@@ -31,7 +31,7 @@ public class Reservation_GradePanel extends JPanel {
         Map<String, Boolean> soldOut = new HashMap<>();
         soldOut.put("스탠다드", false);
         soldOut.put("디럭스", false);
-        soldOut.put("스위트", true);
+        soldOut.put("스위트", false);
 
         for (String gradeName : prices.keySet()) {
             int price = prices.get(gradeName);

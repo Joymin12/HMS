@@ -4,27 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="Merge branch 'feature/reservation'&#10;&#10;# Conflicts:&#10;#&#9;.idea/workspace.xml&#10;#&#9;data/userinfo.txt&#10;#&#9;src/hms/controller/UserController.java&#10;#&#9;src/hms/view/MainFrame.java">
-      <change afterPath="$PROJECT_DIR$/data/reservation_info.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/libs/jcalendar-1.4.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/AdminMainFrame.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckFrame.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationFrame.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/ReservationManagerPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_GradePanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_InfoPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_RoomShowPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/Reservation_SearchPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hms/view/UserMainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="feature: 룸서비스 주문화면">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HMS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/HMS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/reservation_info.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/reservation_info.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/room_service_menu.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/room_service_menu.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/userinfo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/userinfo.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hms/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/AdminMainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/AdminMainFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/MainFrame.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationCheckFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationCheckPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationManagerPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationManagerPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/Reservation_GradePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/Reservation_GradePanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/Reservation_InfoPanel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/Reservation_SearchPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/Reservation_SearchPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/hms/view/RoomServiceOrderPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/RoomServiceOrderPanel.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,10 +74,10 @@
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "main 병합 중",
+    "git-widget-placeholder": "feature/check",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/Pc/Desktop/HMS",
+    "last_opened_file_path": "/Users/jowm/Desktop/HMS/HMS",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -110,6 +106,9 @@
       <workItem from="1762510760633" duration="2000" />
       <workItem from="1762511237735" duration="928000" />
       <workItem from="1762579377927" duration="1513000" />
+      <workItem from="1762834889870" duration="13000" />
+      <workItem from="1762834907673" duration="5633000" />
+      <workItem from="1763098760287" duration="45159000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />
@@ -199,7 +198,39 @@
       <option name="project" value="LOCAL" />
       <updated>1762580824972</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="예약 완료시 저장되는 데이터 공간">
+      <option name="closed" value="true" />
+      <created>1763439768973</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1763439768973</updated>
+    </task>
+    <task id="LOCAL-00013" summary="관리자가 룸서비스 메뉴 추가,삭제,수정하는 데이터 공간">
+      <option name="closed" value="true" />
+      <created>1763440414894</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1763440414894</updated>
+    </task>
+    <task id="LOCAL-00014" summary="feature: 룸서비스 화면 연동">
+      <option name="closed" value="true" />
+      <created>1763538527247</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1763538527247</updated>
+    </task>
+    <task id="LOCAL-00015" summary="feature: 룸서비스 주문화면">
+      <option name="closed" value="true" />
+      <created>1763538541291</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1763538541291</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -258,6 +289,10 @@
     <MESSAGE value="로그인, 회원가입, 회원탈퇴,iD 중복검사 등&#10;데이터베이스 창고&#10;(체크인, 체크아웃 등 기능구현할때 수정해야함)" />
     <MESSAGE value="로그인,회원가입,관리자 등 여러 기능을 수행하게끔 시키는 메서드 집합체" />
     <MESSAGE value="데이터베이스, (회원정보 등 담는역할)" />
-    <option name="LAST_COMMIT_MESSAGE" value="데이터베이스, (회원정보 등 담는역할)" />
+    <MESSAGE value="예약 완료시 저장되는 데이터 공간" />
+    <MESSAGE value="관리자가 룸서비스 메뉴 추가,삭제,수정하는 데이터 공간" />
+    <MESSAGE value="feature: 룸서비스 화면 연동" />
+    <MESSAGE value="feature: 룸서비스 주문화면" />
+    <option name="LAST_COMMIT_MESSAGE" value="feature: 룸서비스 주문화면" />
   </component>
 </project>

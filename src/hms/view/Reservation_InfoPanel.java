@@ -6,7 +6,11 @@ import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.Locale;
-import java.text.SimpleDateFormat; // ★ SimpleDateFormat import 추가
+import java.text.SimpleDateFormat;
+import java.util.stream.IntStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * [예약 4단계] 고객 정보 입력 패널
@@ -19,6 +23,9 @@ public class Reservation_InfoPanel extends JPanel {
     private final JTextField phoneNumberField;
     private final JPanel cardInputPanel;
     private final JLabel noticeLabel;
+
+    private JComboBox<String> checkInTimeCombo;
+    private JComboBox<String> checkOutTimeCombo;
 
     private String paymentMethod = "immediate";
 
@@ -47,17 +54,37 @@ public class Reservation_InfoPanel extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // --- 1. 예약자 이름 ---
         gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("예약자 이름"), gbc);
         gbc.gridx = 1;
         customerNameField = createPlaceholderField(NAME_PLACEHOLDER);
         formPanel.add(customerNameField, gbc);
 
+        // --- 2. 전화번호 ---
         gbc.gridx = 0; gbc.gridy++;
         formPanel.add(new JLabel("전화번호"), gbc);
         gbc.gridx = 1;
         phoneNumberField = createPlaceholderField(PHONE_PLACEHOLDER);
         formPanel.add(phoneNumberField, gbc);
+
+        // --- 3. 예상 체크인 시간 ---
+        gbc.gridx = 0; gbc.gridy++;
+        formPanel.add(new JLabel("체크인 예정 시간"), gbc);
+        gbc.gridx = 1;
+        String[] inTimes = generateTimeOptions(15, 22, 30);
+        checkInTimeCombo = new JComboBox<>(inTimes);
+        formPanel.add(checkInTimeCombo, gbc);
+
+        // --- 4. 예상 체크아웃 시간 ---
+        gbc.gridx = 0; gbc.gridy++;
+        formPanel.add(new JLabel("체크아웃 예정 시간"), gbc);
+        gbc.gridx = 1;
+        String[] outTimes = generateTimeOptions(11, 14, 30);
+        checkOutTimeCombo = new JComboBox<>(outTimes);
+        checkOutTimeCombo.setSelectedItem("11:00");
+        formPanel.add(checkOutTimeCombo, gbc);
+
 
         // (3. 예약 방식)
         gbc.gridx = 0; gbc.gridy++;
@@ -118,6 +145,9 @@ public class Reservation_InfoPanel extends JPanel {
             String customerName = getActualInput(customerNameField, NAME_PLACEHOLDER);
             String phoneNumber = getActualInput(phoneNumberField, PHONE_PLACEHOLDER);
 
+            String estimatedInTime = (String) checkInTimeCombo.getSelectedItem();
+            String estimatedOutTime = (String) checkOutTimeCombo.getSelectedItem();
+
             if (customerName == null || phoneNumber == null) {
                 JOptionPane.showMessageDialog(this, "이름과 전화번호를 입력해주세요.");
                 return;
@@ -130,10 +160,13 @@ public class Reservation_InfoPanel extends JPanel {
             int result = JOptionPane.showConfirmDialog(this, confirmMsg, "예약 확인", JOptionPane.YES_NO_OPTION);
 
             if (result == JOptionPane.YES_OPTION) {
-                // Manager의 최종 저장 메소드 호출
-                manager.finalSaveReservation(customerName, phoneNumber, paymentMethod);
-
-                // 이 중복 호출은 제거되었으므로 그대로 둡니다.
+                manager.finalSaveReservation(
+                        customerName,
+                        phoneNumber,
+                        paymentMethod,
+                        estimatedInTime,
+                        estimatedOutTime
+                );
             }
         });
 
@@ -143,7 +176,33 @@ public class Reservation_InfoPanel extends JPanel {
     }
 
     // =================================================================
-    // ★ 요약 정보 업데이트 메소드 (Getter 이름 수정으로 오류 해결)
+    // ★ 시간 옵션을 생성하는 헬퍼 메서드
+    // =================================================================
+    private String[] generateTimeOptions(int startHour, int endHour, int intervalMinutes) {
+        List<String> times = new ArrayList<>();
+        for (int hour = startHour; hour <= endHour; hour++) {
+            for (int minute = 0; minute < 60; minute += intervalMinutes) {
+                if (hour == endHour && minute > 0) break; // EndHour 정각까지만 포함
+
+                String time = String.format("%02d:%02d", hour, minute);
+
+                // EndHour 정각을 제외하고 마지막 시점 체크
+                if (hour == endHour && minute == 0 && times.contains(time)) continue;
+
+                times.add(time);
+            }
+        }
+        // EndHour 정각이 포함되지 않았다면 (예: 22:00) 추가
+        String lastTime = String.format("%02d:00", endHour);
+        if (!times.contains(lastTime)) {
+            times.add(lastTime);
+        }
+
+        return times.toArray(new String[0]);
+    }
+
+    // =================================================================
+    // ★ 요약 정보 업데이트 메소드
     // =================================================================
 
     /**
@@ -152,23 +211,32 @@ public class Reservation_InfoPanel extends JPanel {
      */
     public void updateSummary() {
 
-        // 1. 총 요금(long)을 콤마가 포함된 문자열로 미리 포맷합니다.
         String priceFormatted = String.format(Locale.US, "%,d", manager.getTotalPrice());
 
-        // 2. 최종 출력 시에는 포맷팅 플래그 대신 일반 문자열(%s)로 대체하여 오류를 방지합니다.
+        // JComboBox의 항목이 채워지지 않았을 경우를 대비하여 null 체크 추가
+        String inTime = (checkInTimeCombo.getSelectedItem() != null) ? (String) checkInTimeCombo.getSelectedItem() : "미정";
+        String outTime = (checkOutTimeCombo.getSelectedItem() != null) ? (String) checkOutTimeCombo.getSelectedItem() : "미정";
+
+
         summaryTextArea.setText(
                 String.format(" --- 예약 정보 요약 --- \n\n" +
-                                " 체크인: \t%s\n" +
-                                " 체크아웃:\t%s (%d박)\n" +
+                                " 체크인 날짜: \t%s\n" +
+                                " 체크아웃 날짜:\t%s (%d박)\n" +
+                                " 예상 IN 시간: \t%s\n" +
+                                " 예상 OUT 시간:\t%s\n" +
                                 " 인원: \t%d명\n" +
                                 " 등급: \t%s\n" +
                                 " 객실: \t%s호\n\n" +
                                 " 총 요금: \t%s원",
-                        // ★★★ 오류 수정: getCheckInDate(), getCheckOutDate(), getGuestCount() 사용 ★★★
-                        new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckInDate()), // Date 객체를 문자열로 포맷
-                        new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckOutDate()), // Date 객체를 문자열로 포맷
+
+                        new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckInDate()),
+                        new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckOutDate()),
                         manager.getNights(),
-                        manager.getGuestCount(), // getGuests() 대신 getGuestCount() 사용
+
+                        inTime, // 선택된 IN 시간
+                        outTime, // 선택된 OUT 시간
+
+                        manager.getGuestCount(),
                         manager.getSelectedGrade(),
                         manager.getSelectedRoom(),
                         priceFormatted
