@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.awt.Window;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 /**
  * 🍴 [사용자] 룸서비스 메뉴를 표시하고 주문을 받는 패널.
