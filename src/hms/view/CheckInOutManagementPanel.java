@@ -3,21 +3,19 @@ package hms.view;
 import hms.controller.ReservationController;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent; // WindowListener 사용을 위해 import 추가
 
 public class CheckInOutManagementPanel extends JPanel {
 
-    private final JFrame parentFrame; // AdminMainFrame에서 호출된 임시 JFrame (CheckInOutFrame 역할)
+    // ⭐ [수정] JFrame 대신 CheckInOutFrame 타입을 명시하여 switchPanel 접근 가능
+    private final CheckInOutFrame parentFrame;
     private final ReservationController controller;
     private JTextField reservationIdField;
     private JButton checkInButton;
     private JButton checkOutButton;
     private JButton backButton;
 
-    public CheckInOutManagementPanel(JFrame parentFrame, ReservationController controller) {
+    // ⭐ [수정] 생성자 시그니처를 CheckInOutFrame으로 변경
+    public CheckInOutManagementPanel(CheckInOutFrame parentFrame, ReservationController controller) {
         this.parentFrame = parentFrame;
         this.controller = controller;
 
@@ -56,8 +54,8 @@ public class CheckInOutManagementPanel extends JPanel {
 
         // --- 3. Footer (Back Button) ---
         backButton = new JButton("메인 화면으로 돌아가기");
-        // 부모 JFrame을 닫아 AdminMainFrame으로 복귀하도록 처리
-        backButton.addActionListener(e -> parentFrame.dispose());
+        // ⭐ [수정] CheckInOutFrame의 returnToAdminMain() 메서드 호출
+        backButton.addActionListener(e -> parentFrame.returnToAdminMain());
 
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         footerPanel.add(backButton);
@@ -81,52 +79,34 @@ public class CheckInOutManagementPanel extends JPanel {
 
         if (reservationDetails != null) {
 
-            // Index 12는 상태 필드 (ReservationController에서 PENDING으로 보장)
-            String currentStatus = reservationDetails.length > 12 ? reservationDetails[12] : "PENDING";
+            // 상태 필드의 인덱스를 Controller 상수에서 가져옴
+            final int STATUS_IDX = ReservationController.RES_IDX_STATUS;
+            String currentStatus = reservationDetails.length > STATUS_IDX ? reservationDetails[STATUS_IDX] : ReservationController.STATUS_PENDING;
 
             if (actionType.equals("CHECK_IN")) {
-                if (currentStatus.equals("CHECKED_IN")) {
+                if (currentStatus.equals(ReservationController.STATUS_CHECKED_IN)) {
                     JOptionPane.showMessageDialog(this, "이미 체크인된 예약입니다.", "안내", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
-                // ⭐⭐ [로직 활성화] CheckInProcessPanel을 새 창에 담아 호출합니다. ⭐⭐
+                // ⭐ [수정] switchPanel 호출로 변경하여 CheckInProcessPanel로 전환
+                parentFrame.switchPanel(CheckInOutFrame.CHECK_IN_PROCESS_VIEW, reservationDetails);
 
-                // 1. 현재 창 숨기기
-                parentFrame.setVisible(false);
-
-                // 2. 새 CheckInProcess 창 생성 (인라인 JFrame)
-                JFrame checkInFrame = new JFrame("체크인 프로세스: " + reservationId);
-
-                // 3. 창 닫힐 때 현재 CheckInOutManagementPanel이 포함된 프레임을 다시 보이게 설정
-                checkInFrame.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosed(WindowEvent e) {
-                        parentFrame.setVisible(true); // 관리 화면 복귀
-                    }
-                });
-
-                // 4. CheckInProcessPanel을 새 프레임에 추가 (3개 인자 호출)
-                CheckInProcessPanel processPanel = new CheckInProcessPanel(checkInFrame, controller, reservationDetails);
-                checkInFrame.add(processPanel);
-
-                checkInFrame.setSize(600, 450);
-                checkInFrame.setLocationRelativeTo(parentFrame);
-                checkInFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                checkInFrame.setVisible(true); // 새 창 표시
 
             } else if (actionType.equals("CHECK_OUT")) {
-                // ... (체크아웃 로직 유지)
-                if (currentStatus.equals("CHECKED_OUT")) {
+                // ⭐⭐ [활성화 및 수정] 체크아웃 로직 ⭐⭐
+
+                if (currentStatus.equals(ReservationController.STATUS_CHECKED_OUT)) {
                     JOptionPane.showMessageDialog(this, "이미 체크아웃이 완료된 예약입니다.", "안내", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                if (!currentStatus.equals("CHECKED_IN")) {
+                if (!currentStatus.equals(ReservationController.STATUS_CHECKED_IN)) {
                     JOptionPane.showMessageDialog(this, "체크아웃은 체크인된 상태에서만 가능합니다.", "안내", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                JOptionPane.showMessageDialog(this, "체크아웃 정산 기능은 준비 중입니다.", "안내", JOptionPane.INFORMATION_MESSAGE);
+                // ⭐ [핵심 호출] CheckoutProcessPanel로 전환
+                parentFrame.switchPanel(CheckInOutFrame.CHECK_OUT_PROCESS_VIEW, reservationDetails);
             }
 
         } else {
