@@ -82,6 +82,15 @@ public class CheckInOutFrame extends JFrame {
             // cardsPanel.remove(cardsPanel.getComponent(cardsPanel.getComponentCount() - 1));
         }
         // TODO: 체크아웃 로직 추가 시 CHECK_OUT_PROCESS_VIEW 처리
+        // ⭐⭐ [수정] 체크아웃 로직 추가 시 CHECK_OUT_PROCESS_VIEW 처리 ⭐⭐
+        else if (viewName.equals(CHECK_OUT_PROCESS_VIEW) && data != null) {
+            // CheckoutProcessPanel을 동적으로 생성하고 추가
+            CheckoutProcessPanel checkoutPanel = new CheckoutProcessPanel(this, controller, data);
+
+            // 기존 뷰를 제거하고 새 뷰를 추가하여 메모리 효율성을 높일 수 있습니다.
+            cardsPanel.add(checkoutPanel, CHECK_OUT_PROCESS_VIEW);
+            cardLayout.show(cardsPanel, CHECK_OUT_PROCESS_VIEW);
+        }
     }
 
     /**
