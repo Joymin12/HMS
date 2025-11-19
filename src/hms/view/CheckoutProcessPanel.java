@@ -7,6 +7,7 @@ import java.awt.*;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import java.time.format.DateTimeFormatter; // ⭐ DateTimeFormatter import 추가
 
 /**
  * 💸 [관리자] 체크아웃 과정에서 최종 청구서를 표시하고 결제를 완료하는 패널입니다.
@@ -23,8 +24,9 @@ public class CheckoutProcessPanel extends JPanel {
     private long totalServiceCost = 0;
     private long finalTotalBill = 0;
 
-    // ⭐ 예약 데이터 인덱스 상수 (DataManager와 맞춰야 함)
-    private static final int RES_IDX_ROOM_NUM = 1; // 객실 번호가 인덱스 1에 있다고 가정
+    // ⭐ [수정] 예약 데이터 인덱스 상수 (ReservationController와 일치)
+    private static final int RES_IDX_ROOM_NUM = 9; // 객실 번호 인덱스
+    private static final int RES_IDX_CHECK_IN_DATE = 3; // 체크인 날짜 인덱스
 
     public CheckoutProcessPanel(CheckInOutFrame parentFrame, ReservationController controller, String[] reservationData) {
         this.parentFrame = parentFrame;
@@ -81,9 +83,8 @@ public class CheckoutProcessPanel extends JPanel {
         // 1. 룸서비스 비용 계산
         totalServiceCost = calculateRoomServiceCost(roomNumber);
 
-        // 2. 숙박비 계산 (임시값 또는 Controller에서 조회)
-        // 실제로는 controller.calculateRoomCharge(reservationData) 등을 사용
-        long roomCharge = 200000;
+        // 2. ⭐ [수정] 숙박비 계산 (Controller에서 조회)
+        long roomCharge = controller.getRoomCharge(reservationData);
 
         finalTotalBill = roomCharge + totalServiceCost;
 
@@ -154,13 +155,10 @@ public class CheckoutProcessPanel extends JPanel {
         for (String[] request : completedRequests) {
             String reqRoomNum = request[1];
             if (reqRoomNum.equals(roomNumber)) {
-                // req[2] = ItemSummary (예: 샌드위치 x 1; 콜라 x 1)
-                // req[3] = TotalPrice
-
-                String items = request[2].replace(";", ", "); // 구분자 변경
+                String items = request[2].replace(";", ", ");
                 String price = NumberFormat.getNumberInstance(Locale.US).format(Long.parseLong(request[3]));
 
-                details.append(String.format(" - %s (%,s원)\n", items, price));
+                details.append(String.format(" - %s (%s원)\n", items, price));
             }
         }
         return details.length() > 0 ? details.toString() : " (청구된 룸서비스 내역이 없습니다)\n";
@@ -189,18 +187,6 @@ public class CheckoutProcessPanel extends JPanel {
                         RoomServiceDataManager.STATUS_PAID
                 );
 
-                // 가상의 결제 완료 상태 업데이트 호출 (다음 작업 요청 시 DataManager에 추가할 수 있습니다)
-                // serviceManager.markRoomServiceAsPaid(roomNumber, RoomServiceDataManager.STATUS_COMPLETED);
-
-                JOptionPane.showMessageDialog(this,
-                        "체크아웃이 완료되고 청구서가 정산되었습니다.",
-                        "체크아웃 성공",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                parentFrame.switchPanel(CheckInOutFrame.MANAGEMENT_VIEW, null); // 관리 화면으로 복귀
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "예약 또는 체크아웃 처리 중 오류가 발생했습니다.",
                 if (servicePaidSuccess) {
                     JOptionPane.showMessageDialog(this,
                             "체크아웃이 완료되고 청구서가 정산되었습니다.",
@@ -217,6 +203,7 @@ public class CheckoutProcessPanel extends JPanel {
 
             } else {
                 JOptionPane.showMessageDialog(this,
+                        "예약 또는 체크아웃 처리 중 오류가 발생했습니다. ReservationController 확인 필요.",
                         "오류",
                         JOptionPane.ERROR_MESSAGE);
             }
