@@ -93,7 +93,10 @@ public class CheckoutProcessPanel extends JPanel {
     }
 
     private String formatBillContent(String roomNumber, long roomCharge, long serviceCost, long total) {
-        String format = NumberFormat.getNumberInstance(Locale.US).format(0); // 포맷 예시용
+        // ⭐ [수정] 체크인 날짜 가져오기
+        String checkInDate = reservationData[RES_IDX_CHECK_IN_DATE];
+        // ⭐ [수정] 현재 체크아웃 시간 포맷
+        String now = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(java.time.LocalDateTime.now());
 
         // 룸서비스 상세 내역을 가져와서 청구서에 포함
         String serviceDetails = getServiceDetails(roomNumber);
@@ -103,18 +106,18 @@ public class CheckoutProcessPanel extends JPanel {
                         "            🏨 객실 체크아웃 청구서 💸\n" +
                         "================================================\n" +
                         " 객실 번호: %s\n" +
-                        " 체크인: [날짜/시간]\n" + // 실제 데이터 사용 필요
-                        " 체크아웃: [현재 날짜/시간]\n" +
+                        " 체크인: %s\n" + // ⭐ [수정] 실제 데이터 사용
+                        " 체크아웃: %s\n" + // ⭐ [수정] 실제 시간 사용
                         "------------------------------------------------\n" +
                         " [1] 숙박 비용: \t\t%,15d 원\n" +
                         " [2] 룸서비스 비용: \t%,15d 원\n" +
                         "------------------------------------------------\n" +
                         " 룸서비스 상세 내역:\n" +
-                        "%s\n" + // 상세 내역 삽입
+                        "%s\n" +
                         "------------------------------------------------\n" +
                         " 최종 결제 금액: \t%,15d 원\n" +
                         "================================================\n",
-                roomNumber, roomCharge, serviceCost, serviceDetails, total
+                roomNumber, checkInDate, now, roomCharge, serviceCost, serviceDetails, total
         );
     }
 
