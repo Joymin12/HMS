@@ -227,7 +227,30 @@ public class ReservationController {
     }
 
     // ---------------------------------------------------------------------
-    // ⭐ 6. 체크아웃 처리 (Process Checkout) - CheckoutProcessPanel 요구 사항
+    // ⭐ [추가] 6. 총 숙박 요금 조회
+    // ---------------------------------------------------------------------
+    /**
+     * 특정 예약 데이터에서 총 숙박 요금(TotalPrice)을 숫자로 추출합니다.
+     * @param reservationData 예약 상세 정보 배열 (Total Price는 Index 10)
+     * @return long 타입의 숙박 비용. 파싱 오류 시 0을 반환.
+     */
+    public long getRoomCharge(String[] reservationData) {
+        if (reservationData.length > RES_IDX_TOTAL_PRICE) {
+            try {
+                // 숫자 외 문자 제거 후 파싱 (예: 쉼표 등)
+                String priceStr = reservationData[RES_IDX_TOTAL_PRICE].replaceAll("[^0-9]", "");
+                return Long.parseLong(priceStr);
+            } catch (NumberFormatException e) {
+                System.err.println("ERROR: 숙박 비용 파싱 오류 - " + reservationData[RES_IDX_TOTAL_PRICE]);
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+
+    // ---------------------------------------------------------------------
+    // 7. 체크아웃 처리 (Process Checkout) - CheckoutProcessPanel 요구 사항
     // ---------------------------------------------------------------------
     /**
      * 특정 객실의 현재 체크인 상태 예약을 찾아 'CHECKED_OUT' 상태로 변경합니다.
