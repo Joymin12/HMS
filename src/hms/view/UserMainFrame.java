@@ -1,6 +1,7 @@
 package hms.view;
 
 import hms.controller.UserController;
+import hms.controller.ReservationController; // ReservationController import 유지
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -16,13 +17,21 @@ public class UserMainFrame extends JFrame {
 
     private final UserController userController;
     private final String userName;
+    // ⭐ [수정] ReservationController 필드를 선언하고 내부에서 생성합니다.
+    private final ReservationController reservationController = new ReservationController();
 
+    /**
+     * [수정된 부분] 🚨 ReservationController 인수를 제거하고 2개의 인수만 받습니다.
+     */
     public UserMainFrame(String userName, UserController userController) {
         this.userName = userName;
         this.userController = userController;
+        // this.reservationController는 필드에서 이미 초기화됨
 
         setTitle(TITLE);
         setSize(WIDTH, HEIGHT);
+        // AdminMainFrame과 동일하게 EXIT_ON_CLOSE를 유지합니다.
+        // (단, 버튼 클릭 시 프로그램이 완전히 종료되는 문제는 이전처럼 DISPOSE_ON_CLOSE로 해결해야 함을 참고하세요.)
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -55,7 +64,7 @@ public class UserMainFrame extends JFrame {
 
         // --- 로그아웃/계정탈퇴 버튼 ---
         JButton logoutButton = new JButton("로그아웃");
-        JButton deleteAccountButton = new JButton("계정탈퇴"); // ★★★ 계정탈퇴 버튼 ★★★
+        JButton deleteAccountButton = new JButton("계정탈퇴");
 
         logoutButton.setBackground(Color.WHITE);
         logoutButton.setForeground(new Color(30, 144, 255));
@@ -70,7 +79,7 @@ public class UserMainFrame extends JFrame {
             new LoginFrame().setVisible(true);
         });
 
-        // --- 1-2. 회원탈퇴 액션 (★★★ 핵심 로직 ★★★) ---
+        // --- 1-2. 회원탈퇴 액션 ---
         deleteAccountButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(
                     null, "정말로 계정을 탈퇴하시겠습니까?\n모든 정보가 삭제됩니다.", "계정 탈퇴 확인",
@@ -92,7 +101,7 @@ public class UserMainFrame extends JFrame {
         JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonGroupPanel.setOpaque(false);
         buttonGroupPanel.add(logoutButton);
-        buttonGroupPanel.add(deleteAccountButton); // ★★★ 버튼 그룹에 추가 ★★★
+        buttonGroupPanel.add(deleteAccountButton);
 
         panel.add(buttonGroupPanel, BorderLayout.EAST);
         return panel;
@@ -125,20 +134,28 @@ public class UserMainFrame extends JFrame {
         JButton btnMyInfo = createMenuButton("👤 내 정보 관리");
 
         // --- 액션 리스너 연결 ---
+        // ⭐ [수정] ReservationFrame과 ReservationCheckFrame 호출 시 컨트롤러 인자 전달 로직 유지
         btnReservation.addActionListener(e -> {
             this.setVisible(false);
-            new ReservationFrame(this);
+            new ReservationFrame(this, this.reservationController, this.userController);
         });
 
         btnReservationCheck.addActionListener(e -> {
             this.setVisible(false);
-            new ReservationCheckFrame(this);
+            new ReservationCheckFrame(this, this.reservationController);
         });
 
         // 룸서비스 주문 액션 (임시 메시지)
         btnRoomService.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "룸서비스 주문 화면은 준비 중입니다.", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
+            JDialog dialog = new JDialog(this, "룸서비스 주문", true);
+            JScrollPane scrollPane = new JScrollPane(new RoomServiceOrderPanel(this));
+            dialog.setContentPane(scrollPane);
+            dialog.setSize(750, 700);
+            dialog.setLocationRelativeTo(this);
+            dialog.setVisible(true);
         });
+
+
 
         // 내 정보 관리 액션 (임시 메시지)
         btnMyInfo.addActionListener(e -> {
