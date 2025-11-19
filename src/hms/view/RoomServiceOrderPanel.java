@@ -242,8 +242,19 @@ public class RoomServiceOrderPanel extends JPanel {
             return;
         }
 
+        // ⭐ [핵심 수정 1] UserMainFrame에서 인증된 객실 번호를 가져옵니다.
+        String roomNumber = parentFrame.getAuthenticatedRoomNumber();
+
+        // ⭐ [핵심 수정 2] 객실 번호 유효성 검사 (인증 없이 패널이 열렸는지 확인)
+        if (roomNumber == null || roomNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "객실 인증 정보가 유실되었습니다. 주문을 재시도하거나 메인 화면에서 다시 시도해주세요.",
+                    "주문 오류", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         int confirm = JOptionPane.showConfirmDialog(this,
-                totalLabel.getText() + "로 주문을 확정하시겠습니까?",
+                roomNumber + "호실로 " + totalLabel.getText() + "로 주문을 확정하시겠습니까?",
                 "주문 확인", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
