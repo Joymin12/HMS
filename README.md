@@ -1,11 +1,14 @@
 # HMS
 객체 프로그래밍 II 호텔 관리자 시스템 프로젝트
 
-TODO: 청구서 수정 (룸서비스 + 호텔)
+TODO: 청구서 수정 (룸서비스 + 호텔) => CheckoutProcessPanel 에서 수정해야함
 
-TODO: 사용자 관리 (AdminMainFrame 어디에 구현할지 정하기)
+수정사항 : 현장결제(onsite) 혹은 직접(카드)결제(immediate) 시 이미 결제 완료. 청구서에서 합은 있어야하지만 청구 요금에서는 빠져야함. 6번 TODO에 해당
 
-TODO: 매출보고서 (folio_charges.txt에 저장)
+
+TODO: 사용자 관리 (AdminMainFrame 어디에 구현할지 정하기) => 기능 요구 명세서 참고
+
+TODO: 매출보고서 (folio_charges.txt에 저장) 
 
 TODO: 객실 관리 (데이터 공간 필요시 data 폴더에 텍스트 파일 추가 후 기능 구현)
 
