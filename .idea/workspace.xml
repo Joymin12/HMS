@@ -4,23 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="feature: 룸서비스 주문화면">
+    <list default="true" id="509790cc-4430-4c69-b3f8-affeb22359d4" name="변경" comment="fix: 하드코딩 제거">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/reservation_info.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/reservation_info.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/room_service_menu.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/room_service_menu.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/userinfo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/userinfo.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/ReservationController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/AdminMainFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/AdminMainFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/LoginFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationCheckFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationCheckPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationCheckPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationFrame.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/ReservationManagerPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/ReservationManagerPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/Reservation_GradePanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/Reservation_GradePanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/Reservation_InfoPanel.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/Reservation_SearchPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/Reservation_SearchPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/hms/view/RoomServiceOrderPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/hms/view/RoomServiceOrderPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/room_service_requests.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/room_service_requests.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,10 +61,11 @@
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/check",
+    "git-widget-placeholder": "feature/checkout",
+    "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/jowm/Desktop/HMS/HMS",
+    "last_opened_file_path": "C:/HMS",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -109,6 +97,7 @@
       <workItem from="1762834889870" duration="13000" />
       <workItem from="1762834907673" duration="5633000" />
       <workItem from="1763098760287" duration="45159000" />
+      <workItem from="1763557527650" duration="6634000" />
     </task>
     <task id="LOCAL-00001" summary="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔">
       <option name="closed" value="true" />
@@ -230,7 +219,111 @@
       <option name="project" value="LOCAL" />
       <updated>1763538541291</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="feat: 체크아웃 시 요금 청구&#10;체크아웃 시간 체크(추가 요금)">
+      <option name="closed" value="true" />
+      <created>1763569388598</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569388598</updated>
+    </task>
+    <task id="LOCAL-00017" summary="feat: CheckoutProcessPanel에 룸서비스 비용 정산 로직 통합 &#10;fix: ReservationController 및 CheckoutProcessPanel의 인덱스 불일치 문제 해결&#10;fix: CheckoutProcessPanel의 금액 포맷 오류 수정">
+      <option name="closed" value="true" />
+      <created>1763569541197</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569541197</updated>
+    </task>
+    <task id="LOCAL-00018" summary="feat: 체크아웃시 시간 기록&#10;reservation_info.txt에 저장">
+      <option name="closed" value="true" />
+      <created>1763569570244</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569570244</updated>
+    </task>
+    <task id="LOCAL-00019" summary="feat: 숙박 요금 조회 기능">
+      <option name="closed" value="true" />
+      <created>1763569603721</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569603721</updated>
+    </task>
+    <task id="LOCAL-00020" summary="fix: reservation_info.txt에 데이터 값 저장 추가">
+      <option name="closed" value="true" />
+      <created>1763569644980</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569644980</updated>
+    </task>
+    <task id="LOCAL-00021" summary="fix: reservation_info.txt에 데이터 값 저장 추가">
+      <option name="closed" value="true" />
+      <created>1763569659369</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569659369</updated>
+    </task>
+    <task id="LOCAL-00022" summary="feat: 체크아웃 시간 표시">
+      <option name="closed" value="true" />
+      <created>1763569686827</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569686827</updated>
+    </task>
+    <task id="LOCAL-00023" summary="feat: 관리자 체크인/아웃 관리 페이지에서 체크아웃 패널 연동">
+      <option name="closed" value="true" />
+      <created>1763569739278</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569739278</updated>
+    </task>
+    <task id="LOCAL-00024" summary="feat: 관리자 체크인 관리 패널&#10;체크인과 체크아웃 가능하게 구현">
+      <option name="closed" value="true" />
+      <created>1763569820247</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569820247</updated>
+    </task>
+    <task id="LOCAL-00025" summary="feat: CheckoutProcessPanel에서 체크인, 체크아웃 실제 시간 데이터 사용">
+      <option name="closed" value="true" />
+      <created>1763569916699</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569916699</updated>
+    </task>
+    <task id="LOCAL-00026" summary="feat: CheckoutProcessPanel에서 체크아웃 성공, 실패, 오류 처리 로직 추가">
+      <option name="closed" value="true" />
+      <created>1763569946810</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1763569946810</updated>
+    </task>
+    <task id="LOCAL-00027" summary="fix: 테스트용 하드코딩 제거 및 데이터를 기반으로 하게끔 적용">
+      <option name="closed" value="true" />
+      <created>1763570006259</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1763570006259</updated>
+    </task>
+    <task id="LOCAL-00028" summary="fix: 하드코딩 제거">
+      <option name="closed" value="true" />
+      <created>1763570026867</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1763570026867</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -280,8 +373,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="11.07 이클립스, 넷빈즈, 툴 상관없이 되게끔" />
-    <MESSAGE value="시작 시 첫화면&#10;로그인, 회원가입 가능&#10;user.txt 파일과 일치했을때에 로그인 가능" />
     <MESSAGE value="로그인 성공 시 메인화면&#10;예약, 예약조회, 룸서비스, 체크인/아웃, 관리자 페이지" />
     <MESSAGE value="회원가입 화면&#10;아아디, 패스워드, 패스워드 확인, 이름, 전화번호, 나이 등&#10;입력 받는 화면" />
     <MESSAGE value="유일한 실행&#10;로그인 화면으로 전환해주는 클래스" />
@@ -293,6 +384,20 @@
     <MESSAGE value="관리자가 룸서비스 메뉴 추가,삭제,수정하는 데이터 공간" />
     <MESSAGE value="feature: 룸서비스 화면 연동" />
     <MESSAGE value="feature: 룸서비스 주문화면" />
-    <option name="LAST_COMMIT_MESSAGE" value="feature: 룸서비스 주문화면" />
+    <MESSAGE value="feat: 총 요금, 체크아웃 시간 추가(인덱스)&#10;체크아웃 시 체크인 된 방이 맞는지 확인 여부 로직 추가(127)&#10; 체크아웃으로 상태 변경 시 체크 아웃 시간 기록 ==&gt; 오버 체크아웃 추가 요금을 위함.(173)" />
+    <MESSAGE value="feat: 체크아웃 시 요금 청구&#10;체크아웃 시간 체크(추가 요금)" />
+    <MESSAGE value="feat: 예약 상태, 체크아웃 시간 필드 설정" />
+    <MESSAGE value="feat: CheckoutProcessPanel에 룸서비스 비용 정산 로직 통합 &#10;fix: ReservationController 및 CheckoutProcessPanel의 인덱스 불일치 문제 해결&#10;fix: CheckoutProcessPanel의 금액 포맷 오류 수정" />
+    <MESSAGE value="feat: 체크아웃시 시간 기록&#10;reservation_info.txt에 저장" />
+    <MESSAGE value="feat: 숙박 요금 조회 기능" />
+    <MESSAGE value="fix: reservation_info.txt에 데이터 값 저장 추가" />
+    <MESSAGE value="feat: 체크아웃 시간 표시" />
+    <MESSAGE value="feat: 관리자 체크인/아웃 관리 페이지에서 체크아웃 패널 연동" />
+    <MESSAGE value="feat: 관리자 체크인 관리 패널&#10;체크인과 체크아웃 가능하게 구현" />
+    <MESSAGE value="feat: CheckoutProcessPanel에서 체크인, 체크아웃 실제 시간 데이터 사용" />
+    <MESSAGE value="feat: CheckoutProcessPanel에서 체크아웃 성공, 실패, 오류 처리 로직 추가" />
+    <MESSAGE value="fix: 테스트용 하드코딩 제거 및 데이터를 기반으로 하게끔 적용" />
+    <MESSAGE value="fix: 하드코딩 제거" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: 하드코딩 제거" />
   </component>
 </project>
