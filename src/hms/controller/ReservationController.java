@@ -206,7 +206,7 @@ public class ReservationController {
                 for (String newLine : updatedLines) {
                     pw.println(newLine);
                 }
-                System.out.println("예약 ID " + reservationId + " 상태를 " + newStatus + "로 업데이트 완료.");
+                System.out.println("예약 ID " + reservationId + " 상태를 " + newStatus + "로 업데이트 완료. 체크아웃 시간: " + checkoutTime);
                 return true;
             } catch (IOException e) {
                 System.err.println("[ERROR] 상태 변경 중 파일 쓰기 오류: " + e.getMessage());
@@ -307,7 +307,7 @@ public class ReservationController {
         }
 
         if (reservationIdToCheckout != null) {
-            // 2. 해당 예약 ID의 상태를 CHECKED_OUT으로 업데이트
+            // 2. 해당 예약 ID의 상태를 CHECKED_OUT으로 업데이트 (체크아웃 시간도 자동 기록됨)
             boolean success = updateReservationStatus(reservationIdToCheckout, STATUS_CHECKED_OUT);
 
             // 3. (추가 구현 필요: RoomDataManager를 호출하여 객실 상태를 '공실'로 변경)
