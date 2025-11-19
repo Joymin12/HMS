@@ -151,6 +151,11 @@ public class ReservationController {
         List<String> updatedLines = new ArrayList<>();
         boolean updated = false;
 
+        // ⭐ [추가] 체크아웃 상태로 변경될 때 현재 시간을 기록합니다.
+        String checkoutTime = newStatus.equals(STATUS_CHECKED_OUT)
+                ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())
+                : "";
+
         try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
             String line;
             while ((line = br.readLine()) != null) {
