@@ -162,12 +162,27 @@ public class ReservationController {
                 String[] parts = line.split(",", -1);
 
                 if (parts.length > 0 && parts[RES_IDX_ID].trim().equals(reservationId)) {
-                    if (parts.length < 13) {
-                        updatedLines.add(line + "," + newStatus);
-                    } else {
-                        parts[RES_IDX_STATUS] = newStatus;
-                        updatedLines.add(String.join(",", parts));
+
+                    // ⭐ [수정] 최소 14개 필드를 갖도록 배열을 확장하여 상태와 시간을 안전하게 업데이트
+                    String[] currentParts = parts;
+                    if (currentParts.length < RES_IDX_CHECKOUT_TIME + 1) {
+                        currentParts = new String[RES_IDX_CHECKOUT_TIME + 1];
+                        System.arraycopy(parts, 0, currentParts, 0, parts.length);
+                        // 새로 추가된 필드는 빈 값으로 초기화
+                        for(int i = parts.length; i <= RES_IDX_CHECKOUT_TIME; i++) {
+                            currentParts[i] = "";
+                        }
                     }
+
+                    // 1. 상태(Index 12) 업데이트
+                    currentParts[RES_IDX_STATUS] = newStatus;
+
+                    // 2. 체크아웃 상태일 때만 시간(Index 13) 업데이트
+                    if (newStatus.equals(STATUS_CHECKED_OUT)) {
+                        currentParts[RES_IDX_CHECKOUT_TIME] = checkoutTime;
+                    }
+
+                    updatedLines.add(String.join(",", currentParts));
                     updated = true;
                 } else {
                     updatedLines.add(line);
