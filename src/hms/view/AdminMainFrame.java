@@ -1,8 +1,16 @@
 package hms.view;
 
 import hms.controller.UserController;
+import hms.controller.ReservationController;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
+// 실제 프레임 호출을 위해 필요한 import 문을 가정합니다.
+// import hms.view.LoginFrame;
+// import hms.view.ReservationFrame;
+// import hms.view.ReservationCheckFrame;
+// import hms.view.RoomServiceOrderFrame;
+// import hms.view.CheckInOutFrame;
 
 public class AdminMainFrame extends JFrame {
 
@@ -13,9 +21,14 @@ public class AdminMainFrame extends JFrame {
     private final UserController userController;
     private final String userName;
 
+    // ⭐ [수정 1] ReservationController 필드를 선언하고 내부에서 생성합니다.
+    private final ReservationController reservationController = new ReservationController();
+
+    // ⭐ [수정 2] 생성자 시그니처를 2개의 인자로 복구합니다.
     public AdminMainFrame(String userName, UserController userController) {
         this.userName = userName;
         this.userController = userController;
+        // this.reservationController는 필드에서 이미 초기화됨
 
         setTitle(TITLE);
         setSize(WIDTH, HEIGHT);
@@ -23,41 +36,36 @@ public class AdminMainFrame extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- 1. 헤더 (로그아웃만 포함) ---
         JPanel headerPanel = createHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
 
-        // --- 2. 메인 메뉴 패널 ---
         JPanel mainPanel = createMainPanel(userName);
         add(mainPanel, BorderLayout.CENTER);
 
-        // --- 3. 푸터 ---
         JPanel footerPanel = createFooterPanel();
         add(footerPanel, BorderLayout.SOUTH);
 
         setVisible(true);
     }
 
-    // --- 1. 헤더 (계정탈퇴 버튼 제거) ---
+    // --- 1. 헤더 패널 생성 (로그아웃 로직 포함) ---
     private JPanel createHeaderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(150, 0, 0));
+        panel.setBackground(new Color(178, 34, 34));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        JLabel titleLabel = new JLabel("호텔 관리 시스템 (관리자)");
+        JLabel titleLabel = new JLabel("호텔 예약 시스템 (관리자)");
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
         panel.add(titleLabel, BorderLayout.WEST);
 
-        // --- 로그아웃 버튼만 남김 ---
         JButton logoutButton = new JButton("로그아웃");
         logoutButton.setBackground(Color.WHITE);
-        logoutButton.setForeground(new Color(150, 0, 0));
+        logoutButton.setForeground(new Color(178, 34, 34));
 
-        // 로그아웃 액션
         logoutButton.addActionListener(e -> {
             if (userController != null) userController.logout();
-            JOptionPane.showMessageDialog(null, "로그아웃 되었습니다.");
+            JOptionPane.showMessageDialog(null, "관리자 계정에서 로그아웃 되었습니다.");
             dispose();
             new LoginFrame().setVisible(true);
         });
@@ -65,15 +73,14 @@ public class AdminMainFrame extends JFrame {
         JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonGroupPanel.setOpaque(false);
         buttonGroupPanel.add(logoutButton);
-        // deleteAccountButton 제거
 
         panel.add(buttonGroupPanel, BorderLayout.EAST);
         return panel;
     }
 
-    // ... (createMainPanel 등 나머지 코드는 이전 AdminMainFrame과 동일) ...
+
+    // --- 2. 메인 메뉴 패널 (액션 활성화) ---
     private JPanel createMainPanel(String userName) {
-        // ... (버튼 연결 로직 동일) ...
         JPanel panel = new JPanel(new BorderLayout(10, 20));
         panel.setBackground(new Color(255, 230, 230));
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
@@ -81,60 +88,64 @@ public class AdminMainFrame extends JFrame {
         // 환영 메시지
         JPanel welcomePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         welcomePanel.setBackground(Color.WHITE);
-        welcomePanel.setBorder(BorderFactory.createLineBorder(new Color(150, 0, 0), 2));
-        String welcomeText = "<html><h2 style='margin-bottom: 4px;'>관리자, " + userName + "님!</h2><p>호텔 운영 시스템에 오신 것을 환영합니다. 모든 기능을 사용할 수 있습니다.</p></html>";
+        welcomePanel.setBorder(BorderFactory.createLineBorder(new Color(178, 34, 34), 2));
+        String welcomeText = "<html><h2 style='margin-bottom: 4px; color:#b22222;'>환영합니다, " + userName + " 관리자님!</h2><p>호텔 운영 및 관리를 시작하세요.</p></html>";
         JLabel welcomeLabel = new JLabel(welcomeText);
         welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         welcomePanel.add(welcomeLabel);
         panel.add(welcomePanel, BorderLayout.NORTH);
 
-        // --- 6개 버튼 그리드 (2행 3열) ---
         JPanel gridPanel = new JPanel(new GridLayout(2, 3, 20, 20));
         gridPanel.setOpaque(false);
 
-        // 고객 기능
         JButton btnReservation = createMenuButton("예약 (고객 대리)");
         JButton btnReservationCheck = createMenuButton("예약 전체 조회");
-        JButton btnRoomService = createMenuButton("룸서비스 요청 확인");
+        JButton btnRoomService = createMenuButton("🍽️ 룸서비스 관리");
 
-        // 관리자 전용 기능
         JButton btnCheckInOut = createMenuButton("🚪 체크인/아웃 관리");
         JButton btnRoomManagement = createMenuButton("🔑 객실/가격 관리");
         JButton btnReport = createMenuButton("📊 매출 보고서");
 
         // --- 액션 리스너 연결 ---
 
-        // 예약 생성/조회
+        // 1. 예약 생성/대리
         btnReservation.addActionListener(e -> {
             this.setVisible(false);
-            new ReservationFrame(this);
+            new ReservationFrame(this, this.reservationController, this.userController);
         });
+
+        // 2. 예약 전체 조회
         btnReservationCheck.addActionListener(e -> {
             this.setVisible(false);
-            new ReservationCheckFrame(this);
+            new ReservationCheckFrame(this, this.reservationController);
         });
 
-        // 룸서비스 요청 확인 및 기타 임시 메시지들
+        // 3. 룸서비스 관리
         btnRoomService.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "룸서비스 요청 목록 관리 화면은 준비 중입니다.", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
+            this.setVisible(false);
+            new RoomServiceOrderFrame(this, this.reservationController);
         });
 
+        // 4. 체크인/아웃 관리
         btnCheckInOut.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "체크인/아웃 관리 화면은 준비 중입니다.", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
+            this.setVisible(false);
+            new CheckInOutFrame(this, this.reservationController);
         });
 
+        // 5. 객실/가격 관리 (준비 중 유지)
         btnRoomManagement.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "객실 및 가격 관리 화면은 준비 중입니다.", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "객실 및 가격 관리 화면 호출 (RoomManagementFrame 구현 필요)", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
         });
 
+        // 6. 매출 보고서 (준비 중 유지)
         btnReport.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "매출 및 예약 보고서 화면은 준비 중입니다.", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "매출 및 예약 보고서 화면 호출 (ReportFrame 구현 필요)", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
         });
 
 
         gridPanel.add(btnReservation);
         gridPanel.add(btnReservationCheck);
-        gridPanel.add(btnRoomService);
+        gridPanel.add(btnRoomService); // ⭐ [수정] 이전에 btnReservation.add()가 아닌 gridPanel.add()로 수정했습니다.
         gridPanel.add(btnCheckInOut);
         gridPanel.add(btnRoomManagement);
         gridPanel.add(btnReport);
@@ -143,27 +154,26 @@ public class AdminMainFrame extends JFrame {
         return panel;
     }
 
-    // --- 3. 푸터 ---
+    // --- 3. 푸터 (정상 복구) ---
     private JPanel createFooterPanel() {
-        JPanel panel = new JPanel();
-        panel.setBackground(new Color(31, 41, 55));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        JLabel footerLabel = new JLabel("호텔 관리 시스템 © 2025");
-        footerLabel.setForeground(Color.WHITE);
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panel.setBackground(new Color(240, 240, 240));
+        JLabel footerLabel = new JLabel("© 2025 Hotel Management System. All Rights Reserved.");
+        footerLabel.setForeground(Color.GRAY);
         panel.add(footerLabel);
         return panel;
     }
 
-    // --- 4. 헬퍼 메소드 (버튼 스타일) ---
+    // --- 4. 헬퍼 메소드 (버튼 스타일, 정상 복구) ---
     private JButton createMenuButton(String title) {
-        JButton button = new JButton();
-        button.setLayout(new BorderLayout(10, 10));
+        JButton button = new JButton(title);
+        button.setFont(new Font("SansSerif", Font.BOLD, 18));
         button.setBackground(Color.WHITE);
-        button.setBorder(BorderFactory.createLineBorder(new Color(150, 0, 0), 2));
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        button.add(titleLabel, BorderLayout.CENTER);
+        button.setForeground(new Color(178, 34, 34));
+        button.setFocusPainted(false);
+        button.setPreferredSize(new Dimension(200, 100));
+        button.setBorder(BorderFactory.createLineBorder(new Color(178, 34, 34), 2));
+
         return button;
     }
 }

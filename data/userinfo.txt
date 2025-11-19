@@ -1,2 +1,4 @@
 admin,admin123,관리자,010-0000-0000,99,admin
-korea,aaaa,한국인,010-6606-3333,0,user
+korea,aaaa,한국인,010-1234-1234,20,user
+qwer123,aaaa,배대,010-1111-2222,0,user
+zzzz,aaaa,지지,010-1111-1111,0,user
