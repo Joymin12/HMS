@@ -1,6 +1,7 @@
 package hms.view;
 
 import hms.controller.UserController;
+import hms.controller.ReservationController; // ReservationController import (필드는 유지)
 import hms.model.User;
 import javax.swing.*;
 import java.awt.*;
@@ -18,6 +19,8 @@ public class LoginFrame extends JFrame {
 
     // (중요) LoginFrame이 '주방장' 객체를 '소유'합니다.
     private UserController userController = new UserController();
+    // ReservationController 객체 생성 및 소유 (필드는 유지)
+    private ReservationController reservationController = new ReservationController();
 
     public LoginFrame() {
         setTitle("호텔 관리 시스템 - 로그인");
@@ -69,13 +72,13 @@ public class LoginFrame extends JFrame {
 
                     // ★★★ 수정 지점: 권한 확인 및 메인 프레임 분기 ★★★
                     if (userController.isCurrentUserAdmin()) {
-                        // 1. 관리자 권한일 경우
-                        new AdminMainFrame(userName, userController).setVisible(true); // AdminMainFrame 호출
+                        // 1. 관리자 권한일 경우: AdminMainFrame은 2개의 인자만 받도록 복구
+                        new AdminMainFrame(userName, userController).setVisible(true); // 2개 인자
                     } else {
-                        // 2. 일반 사용자 권한일 경우
-                        new UserMainFrame(userName, userController).setVisible(true); // UserMainFrame 호출
+                        // 2. 일반 사용자 권한일 경우: UserMainFrame도 2개의 인자만 받도록 통일 (내부에서 RC 생성)
+                        new UserMainFrame(userName, userController).setVisible(true); // 2개 인자
                     }
-                    // ★★★ 여기까지 수정이 필요합니다. ★★★
+                    // ★★★ 수정 완료 ★★★
 
                 } else {
                     JOptionPane.showMessageDialog(null,
