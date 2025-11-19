@@ -28,8 +28,7 @@ public class ReservationController {
         String datePart = new SimpleDateFormat("yyMMdd").format(new Date());
         int randomPart = (int)(Math.random() * 900000) + 100000;
         String confirmationId = datePart + "-" + randomPart;
-
-        // 2. CSV 라인 구성 (⭐ 총 13개 필드로 구성)
+        // 2. CSV 라인 구성 (총 14개 필드로 맞추기 위해 마지막에 콤마(,)를 추가하여 빈 필드 확보)
         String line = String.join(",",
                 confirmationId,                              // 0. 예약 번호
                 (String) data.get("customerName"),           // 1. 고객 이름
@@ -43,7 +42,8 @@ public class ReservationController {
                 (String) data.get("room"),                   // 9. 객실 번호
                 String.valueOf(data.get("totalPrice")),      // 10. 총 요금
                 (String) data.get("paymentMethod"),           // 11. 결제 방식
-                STATUS_PENDING                               // ⭐ 12. 예약 상태 (신규 추가, 초기값)
+                STATUS_PENDING,                              // 12. 예약 상태
+                ""                                           // ⭐ 13. 체크아웃 시간 (초기 빈 값)
         );
 
         // 3. 디렉토리 생성 및 권한 처리
@@ -85,10 +85,18 @@ public class ReservationController {
                 if (parts.length < 3) continue;
 
                 if (parts[1].trim().equals(name) && parts[2].trim().equals(phoneNumber)) {
-                    if (parts.length == 12) {
-                        String[] newParts = new String[13];
-                        System.arraycopy(parts, 0, newParts, 0, 12);
-                        newParts[RES_IDX_STATUS] = STATUS_PENDING;
+                    // ⭐ [수정] 14개 필드 기준으로 확장하여 반환 (구형 데이터 호환성 유지)
+                    if (parts.length < RES_IDX_CHECKOUT_TIME + 1) {
+                        String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];
+                        System.arraycopy(parts, 0, newParts, 0, parts.length);
+
+                        // 상태 필드와 체크아웃 시간 필드가 없는 경우 빈 값 및 PENDING으로 채움
+                        if (parts.length <= RES_IDX_STATUS) {
+                            newParts[RES_IDX_STATUS] = STATUS_PENDING;
+                        }
+                        if (parts.length <= RES_IDX_CHECKOUT_TIME) {
+                            newParts[RES_IDX_CHECKOUT_TIME] = "";
+                        }
                         return newParts;
                     }
                     return parts;
