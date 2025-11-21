@@ -1,7 +1,7 @@
 package hms.view;
 
 import hms.controller.UserController;
-import hms.controller.ReservationController; // ReservationController import 유지
+import hms.controller.ReservationController;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -17,14 +17,14 @@ public class UserMainFrame extends JFrame {
 
     private final UserController userController;
     private final String userName;
-    // ⭐ [수정] ReservationController 필드를 선언하고 내부에서 생성합니다.
+    // ReservationController 필드를 선언하고 내부에서 생성합니다.
     private final ReservationController reservationController = new ReservationController();
 
     // ⭐ [추가] 인증된 객실 번호를 임시로 저장할 필드
     private String authenticatedRoomNumber = null;
 
     /**
-     * [수정된 부분] 🚨 ReservationController 인수를 제거하고 2개의 인수만 받습니다.
+     * 생성자
      */
     public UserMainFrame(String userName, UserController userController) {
         this.userName = userName;
@@ -33,8 +33,6 @@ public class UserMainFrame extends JFrame {
 
         setTitle(TITLE);
         setSize(WIDTH, HEIGHT);
-        // AdminMainFrame과 동일하게 EXIT_ON_CLOSE를 유지합니다.
-        // (단, 버튼 클릭 시 프로그램이 완전히 종료되는 문제는 이전처럼 DISPOSE_ON_CLOSE로 해결해야 함을 참고하세요.)
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -79,7 +77,7 @@ public class UserMainFrame extends JFrame {
             if (userController != null) userController.logout();
             JOptionPane.showMessageDialog(null, "로그아웃 되었습니다.");
             dispose();
-            new LoginFrame().setVisible(true);
+             new LoginFrame().setVisible(true);
         });
 
         // --- 1-2. 회원탈퇴 액션 ---
@@ -94,7 +92,7 @@ public class UserMainFrame extends JFrame {
                 if (deleteSuccess) {
                     JOptionPane.showMessageDialog(null, "회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
                     dispose();
-                    new LoginFrame().setVisible(true); // 로그인 화면으로 복귀
+                     new LoginFrame().setVisible(true); // 로그인 화면으로 복귀
                 } else {
                     JOptionPane.showMessageDialog(null, "탈퇴 중 오류가 발생했습니다. (예: 활성화된 예약이 남아있습니다)");
                 }
@@ -137,7 +135,6 @@ public class UserMainFrame extends JFrame {
         JButton btnMyInfo = createMenuButton("👤 내 정보 관리");
 
         // --- 액션 리스너 연결 ---
-        // ⭐ [수정] ReservationFrame과 ReservationCheckFrame 호출 시 컨트롤러 인자 전달 로직 유지
         btnReservation.addActionListener(e -> {
             this.setVisible(false);
             new ReservationFrame(this, this.reservationController, this.userController);
@@ -148,7 +145,7 @@ public class UserMainFrame extends JFrame {
             new ReservationCheckFrame(this, this.reservationController);
         });
 
-        // 룸서비스 주문 액션 (임시 메시지)
+        // ⭐⭐ [핵심 수정] 룸서비스 주문 액션: 인증 단계를 먼저 거칩니다.
         btnRoomService.addActionListener(e -> {
 
             // 1. 커스텀 UI를 위한 JTextField 생성
@@ -211,7 +208,6 @@ public class UserMainFrame extends JFrame {
                 }
             }
         });
-
 
 
         // 내 정보 관리 액션 (임시 메시지)

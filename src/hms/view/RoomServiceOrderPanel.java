@@ -78,9 +78,7 @@ public class RoomServiceOrderPanel extends JPanel {
         categoryFilter.addActionListener(this::handleCategoryFilterChange);
 
         JScrollPane scrollPane = new JScrollPane(menuTable);
-        // ⭐ [핵심 수정 1] 세로 스크롤바 제거
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-        // ⭐ [핵심 수정 2] 수평 스크롤바 제거
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         // 메뉴 목록 창 높이를 150px로 줄입니다. (preferredSize 설정)
@@ -275,13 +273,11 @@ public class RoomServiceOrderPanel extends JPanel {
                 }
             }
 
-            // 하드 코딩 값 유지
-            String roomNumber = "101";
-
+            // ⭐ [수정 3] 인증된 roomNumber 변수를 사용합니다.
             String newId = dataManager.addServiceRequest(roomNumber, itemSummary.toString(), totalAmount);
 
             if (newId != null) {
-                JOptionPane.showMessageDialog(this, "룸서비스 주문이 요청되었습니다! (ID: " + newId + ")", "주문 완료", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "룸서비스 주문이 요청되었습니다! (" + roomNumber + "호 / ID: " + newId + ")", "주문 완료", JOptionPane.INFORMATION_MESSAGE);
 
                 Window w = SwingUtilities.getWindowAncestor(this);
                 if (w != null) {

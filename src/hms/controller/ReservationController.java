@@ -17,9 +17,9 @@ public class ReservationController {
     public static final String STATUS_CHECKED_OUT = "CHECKED_OUT"; // 체크아웃 완료 상태
     public static final int RES_IDX_ID = 0; // 예약 ID 인덱스
     public static final int RES_IDX_ROOM_NUM = 9; // 객실 번호 인덱스
-    public static final int RES_IDX_TOTAL_PRICE = 10; // ⭐ [상수 추가] 총 요금 인덱스
+    public static final int RES_IDX_TOTAL_PRICE = 10; // 총 요금 인덱스
     public static final int RES_IDX_STATUS = 12; // 상태 인덱스
-    public static final int RES_IDX_CHECKOUT_TIME = 13; // ⭐ [상수 추가] 체크아웃 시간 인덱스 (14번째 필드)
+    public static final int RES_IDX_CHECKOUT_TIME = 13; // 체크아웃 시간 인덱스 (14번째 필드)
 
     // ---------------------------------------------------------------------
     // 1. 예약 저장 (Save Reservation)
@@ -28,7 +28,7 @@ public class ReservationController {
         String datePart = new SimpleDateFormat("yyMMdd").format(new Date());
         int randomPart = (int)(Math.random() * 900000) + 100000;
         String confirmationId = datePart + "-" + randomPart;
-        // 2. CSV 라인 구성 (총 14개 필드로 맞추기 위해 마지막에 콤마(,)를 추가하여 빈 필드 확보)
+        // 2. CSV 라인 구성 (총 14개 필드)
         String line = String.join(",",
                 confirmationId,                              // 0. 예약 번호
                 (String) data.get("customerName"),           // 1. 고객 이름
@@ -43,7 +43,7 @@ public class ReservationController {
                 String.valueOf(data.get("totalPrice")),      // 10. 총 요금
                 (String) data.get("paymentMethod"),           // 11. 결제 방식
                 STATUS_PENDING,                              // 12. 예약 상태
-                ""                                           // ⭐ 13. 체크아웃 시간 (초기 빈 값)
+                ""                                           // 13. 체크아웃 시간 (초기 빈 값)
         );
 
         // 3. 디렉토리 생성 및 권한 처리
@@ -90,7 +90,6 @@ public class ReservationController {
                         String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];
                         System.arraycopy(parts, 0, newParts, 0, parts.length);
 
-                        // 상태 필드와 체크아웃 시간 필드가 없는 경우 빈 값 및 PENDING으로 채움
                         if (parts.length <= RES_IDX_STATUS) {
                             newParts[RES_IDX_STATUS] = STATUS_PENDING;
                         }
@@ -249,17 +248,11 @@ public class ReservationController {
     }
 
     // ---------------------------------------------------------------------
-    // ⭐ [추가] 6. 총 숙박 요금 조회
+    // 6. 총 숙박 요금 조회
     // ---------------------------------------------------------------------
-    /**
-     * 특정 예약 데이터에서 총 숙박 요금(TotalPrice)을 숫자로 추출합니다.
-     * @param reservationData 예약 상세 정보 배열 (Total Price는 Index 10)
-     * @return long 타입의 숙박 비용. 파싱 오류 시 0을 반환.
-     */
     public long getRoomCharge(String[] reservationData) {
         if (reservationData.length > RES_IDX_TOTAL_PRICE) {
             try {
-                // 숫자 외 문자 제거 후 파싱 (예: 쉼표 등)
                 String priceStr = reservationData[RES_IDX_TOTAL_PRICE].replaceAll("[^0-9]", "");
                 return Long.parseLong(priceStr);
             } catch (NumberFormatException e) {
@@ -269,7 +262,6 @@ public class ReservationController {
         }
         return 0;
     }
-
 
     // ---------------------------------------------------------------------
     // ⭐ [추가] 7. 룸서비스 객실 인증 (Authentication)
@@ -315,12 +307,8 @@ public class ReservationController {
 
 
     // ---------------------------------------------------------------------
-    /**
-     * 특정 객실의 현재 체크인 상태 예약을 찾아 'CHECKED_OUT' 상태로 변경합니다.
-     * (실제 구현에서는 객실 상태 관리 로직도 포함되어야 합니다.)
-     * @param roomNumber 체크아웃할 객실 번호
-     * @return 체크아웃 처리 성공 여부
-     */
+    // 8. 체크아웃 처리 (Process Checkout) - CheckoutProcessPanel 요구 사항 (유지)
+    // ---------------------------------------------------------------------
     public boolean processCheckout(String roomNumber) {
         // 1. 해당 객실 번호로 'CHECKED_IN' 상태의 예약을 찾습니다.
         String reservationIdToCheckout = null;
