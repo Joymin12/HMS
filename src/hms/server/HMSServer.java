@@ -87,10 +87,11 @@ public class HMSServer {
                             break;
                         case "RES_CHECKOUT": // 체크아웃 처리
                             String roomNum = (String) req.getData();
-                            // 방 번호로 체크인된 예약 찾아서 체크아웃
-                            // (간소화를 위해 여기서는 Controller 로직을 서버로 가져왔다고 가정하거나, ID를 받아 처리)
-                            // 실제로는 ReservationDataManager에 processCheckoutByRoom 메서드 필요
-                            res = new NetworkMessage(true, "체크아웃(서버기능확장필요)", null);
+                            // ⭐ [수정] DataManager의 Checkout 로직을 호출하여 파일에 상태 변경
+                            boolean checkoutOk = resMgr.processCheckoutByRoom(roomNum);
+
+                            // ⭐ [수정] 성공 여부를 클라이언트에 반환
+                            res = new NetworkMessage(checkoutOk, "체크아웃", null);
                             break;
                         case "RES_VALIDATE_CHECKIN": // 체크인 검증
                             String[] valData = ((String) req.getData()).split(",");
