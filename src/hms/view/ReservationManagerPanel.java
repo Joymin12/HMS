@@ -2,7 +2,7 @@ package hms.view;
 
 import hms.controller.ReservationController;
 import hms.controller.UserController;
-import hms.model.User; // User 모델 사용을 위해 import 가정
+import hms.model.User;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Date;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class ReservationManagerPanel extends JPanel {
 
     // ----------------------------------------------------------------
-    // 1. 필드 선언 영역 (CardLayout, Controllers, Sub-Panels, State)
+    // 1. 필드 선언 영역
     // ----------------------------------------------------------------
     private CardLayout cardLayout = new CardLayout();
     private JPanel cardsPanel = new JPanel(cardLayout);
@@ -44,9 +44,13 @@ public class ReservationManagerPanel extends JPanel {
     private long nights = 0;
     private long totalPrice = 0;
 
+    // ⭐ [추가] 예약자 이름과 전화번호를 저장할 필드
+    private String customerName;
+    private String phoneNumber;
+
 
     // ----------------------------------------------------
-    // 2. 생성자: 4개의 인수를 받도록 확정
+    // 2. 생성자
     // ----------------------------------------------------
     public ReservationManagerPanel(ReservationFrame reservationFrame,
                                    JFrame ultimateParentFrame,
@@ -57,7 +61,7 @@ public class ReservationManagerPanel extends JPanel {
         this.reservationController = reservationController;
         this.userController = userController;
 
-        // ⭐⭐⭐ [핵심 수정] 실제 패널 객체를 인스턴스화하고 CardLayout에 추가합니다. ⭐⭐⭐
+        // ⭐ 실제 패널 객체 생성 (this를 넘겨서 Manager와 연결)
         step1_search = new Reservation_SearchPanel(this);
         step2_grade = new Reservation_GradePanel(this);
         step3_roomShow = new Reservation_RoomShowPanel(this);
@@ -67,7 +71,6 @@ public class ReservationManagerPanel extends JPanel {
         cardsPanel.add(step2_grade, "step2_grade");
         cardsPanel.add(step3_roomShow, "roomShow");
         cardsPanel.add(step4_info, "info");
-
 
         setLayout(new BorderLayout());
         add(cardsPanel, BorderLayout.CENTER);
@@ -79,12 +82,8 @@ public class ReservationManagerPanel extends JPanel {
     // 3. 핵심 위임 메소드들 (단계 전환 및 데이터 처리)
     // =================================================================
 
-    /**
-     * 단계별 패널 전환 및 데이터 갱신을 처리합니다.
-     */
     public void showStep(String stepName) {
         if (stepName.equals("roomShow")) {
-            // ⭐ [오류 해결] 이 메서드를 호출해야 방 목록이 화면에 그려집니다.
             if (step3_roomShow != null) {
                 step3_roomShow.updateRoomGrid();
             }
@@ -97,20 +96,22 @@ public class ReservationManagerPanel extends JPanel {
     }
 
     /**
-     * [Step 1] 날짜와 인원 데이터를 받아서 멤버 변수에 저장합니다.
+     * [Step 1] 날짜, 인원 + ⭐이름, 전화번호 데이터를 받아서 저장합니다.
+     * (Reservation_SearchPanel에서 호출됨)
      */
-    public void setStep1Data(Date checkIn, Date checkOut, int guests) {
+    public void setStep1Data(Date checkIn, Date checkOut, int guests, String name, String phone) {
         this.checkInDate = checkIn;
         this.checkOutDate = checkOut;
         this.guestCount = guests;
+
+        // ⭐ 전달받은 이름과 전화번호 저장
+        this.customerName = name;
+        this.phoneNumber = phone;
 
         long diffInMillies = Math.abs(checkOut.getTime() - checkIn.getTime());
         this.nights = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * [Step 1/2] 객실 등급별 기본 가격 정보를 제공합니다.
-     */
     public Map<String, Integer> getRoomPrices() {
         Map<String, Integer> prices = new HashMap<>();
         prices.put("스탠다드", 100000);
@@ -119,17 +120,11 @@ public class ReservationManagerPanel extends JPanel {
         return prices;
     }
 
-    /**
-     * [Step 2] 선택된 등급을 저장합니다.
-     */
     public void setStep2Data(String grade) {
         this.selectedGrade = grade;
         this.basePricePerNight = getRoomPrices().getOrDefault(grade, 0);
     }
 
-    /**
-     * [Step 3] Controller를 통해 예약된 객실 목록을 반환합니다.
-     */
     public List<String> getBookedRooms() {
         if (checkInDate == null || checkOutDate == null) {
             return Arrays.asList();
@@ -141,38 +136,33 @@ public class ReservationManagerPanel extends JPanel {
         return reservationController.getBookedRooms(checkInStr, checkOutStr);
     }
 
-    /**
-     * [Step 3] 선택된 객실 번호를 저장하고 4단계 가격 계산을 호출합니다.
-     */
     public void setStep3Data(String roomNumber) {
         this.selectedRoom = roomNumber;
         calculatePrice();
     }
 
-    /**
-     * [내부 로직] 최종 총액을 계산합니다.
-     */
     private void calculatePrice() {
         this.totalPrice = (long) basePricePerNight * nights;
     }
 
-    // --- Getter 메소드 (Reservation_InfoPanel에서 필요했던 모든 Getter) ---
+    // --- Getter 메소드 ---
     public long getTotalPrice() { return this.totalPrice; }
     public Date getCheckInDate() { return this.checkInDate; }
     public Date getCheckOutDate() { return this.checkOutDate; }
     public long getNights() { return this.nights; }
     public int getGuestCount() { return this.guestCount; }
-    public String getSelectedGrade() { return selectedGrade; } // Line 240 오류 해결
+    public String getSelectedGrade() { return selectedGrade; }
     public String getSelectedRoom() { return this.selectedRoom; }
+
+    // ⭐ [추가] Reservation_InfoPanel에서 호출할 Getter 메소드들
+    public String getCustomerName() { return this.customerName; }
+    public String getPhoneNumber() { return this.phoneNumber; }
 
 
     // =================================================================
     // 4. 복귀 및 저장 메소드
     // =================================================================
 
-    /**
-     * 메인으로 돌아가는 메소드 (취소 확인용)
-     */
     public void goBackToMain() {
         int result = JOptionPane.showConfirmDialog(
                 reservationFrame,
@@ -188,9 +178,6 @@ public class ReservationManagerPanel extends JPanel {
         }
     }
 
-    /**
-     * 예약 성공 후 확인 질문 없이 메인으로 돌아갑니다.
-     */
     public void goBackToMain(boolean reservationCompleted) {
         if (reservationCompleted) {
             reservationFrame.dispose();
@@ -202,9 +189,6 @@ public class ReservationManagerPanel extends JPanel {
         }
     }
 
-    /**
-     * 현재 로그인된 사용자 ID를 가져오는 메소드 (User 모델 사용)
-     */
     public String getCurrentUserId() {
         if (userController != null) {
             User currentUser = userController.getCurrentlyLoggedInUser();
@@ -216,7 +200,7 @@ public class ReservationManagerPanel extends JPanel {
     }
 
     /**
-     * 최종 예약 저장 메소드 (Reservation_InfoPanel에서 호출)
+     * 최종 예약 저장 메소드 (4단계 패널에서 호출)
      */
     public void finalSaveReservation(
             String customerName,
@@ -227,10 +211,9 @@ public class ReservationManagerPanel extends JPanel {
     ) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-        // 1. 최종 데이터 맵 구성
         Map<String, Object> finalData = new HashMap<>();
 
-        // Step 1~3 데이터 (멤버 변수에서 가져옴)
+        // 저장해둔 정보들 사용
         finalData.put("checkIn", dateFormat.format(checkInDate));
         finalData.put("checkOut", dateFormat.format(checkOutDate));
         finalData.put("guests", guestCount);
@@ -238,18 +221,14 @@ public class ReservationManagerPanel extends JPanel {
         finalData.put("room", selectedRoom);
         finalData.put("totalPrice", totalPrice);
 
-        // Step 4 데이터 (인자로 받음)
+        // 매개변수로 받은 정보들 사용
         finalData.put("customerName", customerName);
         finalData.put("phoneNumber", phoneNumber);
         finalData.put("paymentMethod", paymentMethod);
         finalData.put("estimatedInTime", estimatedInTime);
         finalData.put("estimatedOutTime", estimatedOutTime);
-
-        // ⭐ 사용자 ID 추가 (누가 예약했는지 기록)
         finalData.put("userId", getCurrentUserId());
 
-
-        // 2. Controller를 통해 파일 저장 요청
         boolean success = reservationController.saveReservationToFile(finalData);
 
         if (success) {

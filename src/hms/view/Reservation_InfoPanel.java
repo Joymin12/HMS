@@ -1,20 +1,12 @@
 package hms.view;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.util.Locale;
 import java.text.SimpleDateFormat;
-import java.util.stream.IntStream;
-import java.util.Collections;
+import java.util.Locale;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * [예약 4단계] 고객 정보 입력 패널
- */
 public class Reservation_InfoPanel extends JPanel {
 
     private final ReservationManagerPanel manager;
@@ -26,12 +18,7 @@ public class Reservation_InfoPanel extends JPanel {
 
     private JComboBox<String> checkInTimeCombo;
     private JComboBox<String> checkOutTimeCombo;
-
     private String paymentMethod = "immediate";
-
-    private final String NAME_PLACEHOLDER = "예약자 성함 (예: 홍길동)";
-    private final String PHONE_PLACEHOLDER = "전화번호 (예: 010-1234-5678)";
-    private final String CARD_PLACEHOLDER = "카드 번호 16자리 (저장되지 않음)";
 
     public Reservation_InfoPanel(ReservationManagerPanel manager) {
         this.manager = manager;
@@ -39,7 +26,6 @@ public class Reservation_InfoPanel extends JPanel {
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-        // (1. 요약 정보)
         summaryTextArea = new JTextArea(8, 30);
         summaryTextArea.setEditable(false);
         summaryTextArea.setBackground(new Color(245, 245, 245));
@@ -47,53 +33,46 @@ public class Reservation_InfoPanel extends JPanel {
         summaryTextArea.setBorder(BorderFactory.createTitledBorder("예약 정보 요약"));
         add(summaryTextArea, BorderLayout.NORTH);
 
-        // (2. 입력 폼)
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // --- 1. 예약자 이름 ---
+        // --- 1. 예약자 이름 (자동 채움) ---
         gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("예약자 이름"), gbc);
         gbc.gridx = 1;
-        customerNameField = createPlaceholderField(NAME_PLACEHOLDER);
+        customerNameField = new JTextField(20);
         formPanel.add(customerNameField, gbc);
 
-        // --- 2. 전화번호 ---
+        // --- 2. 전화번호 (자동 채움) ---
         gbc.gridx = 0; gbc.gridy++;
         formPanel.add(new JLabel("전화번호"), gbc);
         gbc.gridx = 1;
-        phoneNumberField = createPlaceholderField(PHONE_PLACEHOLDER);
+        phoneNumberField = new JTextField(20);
         formPanel.add(phoneNumberField, gbc);
 
-        // --- 3. 예상 체크인 시간 ---
+        // --- 3. 시간 ---
         gbc.gridx = 0; gbc.gridy++;
         formPanel.add(new JLabel("체크인 예정 시간"), gbc);
         gbc.gridx = 1;
-        String[] inTimes = generateTimeOptions(15, 22, 30);
-        checkInTimeCombo = new JComboBox<>(inTimes);
+        checkInTimeCombo = new JComboBox<>(generateTimeOptions(15, 22, 30));
         formPanel.add(checkInTimeCombo, gbc);
 
-        // --- 4. 예상 체크아웃 시간 ---
         gbc.gridx = 0; gbc.gridy++;
         formPanel.add(new JLabel("체크아웃 예정 시간"), gbc);
         gbc.gridx = 1;
-        String[] outTimes = generateTimeOptions(11, 14, 30);
-        checkOutTimeCombo = new JComboBox<>(outTimes);
+        checkOutTimeCombo = new JComboBox<>(generateTimeOptions(11, 14, 30));
         checkOutTimeCombo.setSelectedItem("11:00");
         formPanel.add(checkOutTimeCombo, gbc);
 
-
-        // (3. 예약 방식)
+        // --- 4. 결제 방식 ---
         gbc.gridx = 0; gbc.gridy++;
         formPanel.add(new JLabel("예약 방식"), gbc);
         JRadioButton immediateRadio = new JRadioButton("지금 결제 (보장 예약)");
         immediateRadio.setSelected(true);
-        immediateRadio.setOpaque(false);
         JRadioButton onsiteRadio = new JRadioButton("현장 결제 (미보장)");
-        onsiteRadio.setOpaque(false);
         ButtonGroup radioGroup = new ButtonGroup();
         radioGroup.add(immediateRadio); radioGroup.add(onsiteRadio);
         JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -102,71 +81,53 @@ public class Reservation_InfoPanel extends JPanel {
         gbc.gridx = 1;
         formPanel.add(radioPanel, gbc);
 
-        // (4. 카드 입력 패널)
+        // --- 5. 카드 ---
         cardInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         cardInputPanel.setOpaque(false);
         cardInputPanel.add(new JLabel("카드 번호:"));
-        JTextField cardField = createPlaceholderField(CARD_PLACEHOLDER);
-        cardInputPanel.add(cardField);
+        cardInputPanel.add(new JTextField("카드 번호 16자리", 16));
         gbc.gridx = 0; gbc.gridy++; gbc.gridwidth = 2;
         formPanel.add(cardInputPanel, gbc);
 
-        // (5. 18시 자동 취소 안내 라벨)
-        noticeLabel = new JLabel("<html><font color='red'>※ 당일 18시까지 체크인하지 않으시면 예약이 자동 취소됩니다.</font></html>");
+        noticeLabel = new JLabel("<html><font color='red'>※ 당일 18시까지 미입실 시 자동 취소</font></html>");
         noticeLabel.setVisible(false);
-        gbc.gridx = 0; gbc.gridy++; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy++;
         formPanel.add(noticeLabel, gbc);
         add(formPanel, BorderLayout.CENTER);
 
-        // (6. 라디오 버튼 액션)
+        // 이벤트 리스너
         immediateRadio.addActionListener(e -> {
             paymentMethod = "immediate";
             cardInputPanel.setVisible(true);
             noticeLabel.setVisible(false);
         });
-
         onsiteRadio.addActionListener(e -> {
             paymentMethod = "onsite";
             cardInputPanel.setVisible(false);
             noticeLabel.setVisible(true);
         });
 
-        // (7. 버튼 패널)
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        buttonPanel.setOpaque(false);
-        JButton prevButton = new JButton("이전으로 (방 다시 선택)");
+        JButton prevButton = new JButton("이전");
         prevButton.addActionListener(e -> manager.showStep("roomShow"));
-
         JButton finalButton = new JButton("최종 예약 확정");
         finalButton.setBackground(new Color(37, 99, 235));
         finalButton.setForeground(Color.WHITE);
 
         finalButton.addActionListener(e -> {
-            String customerName = getActualInput(customerNameField, NAME_PLACEHOLDER);
-            String phoneNumber = getActualInput(phoneNumberField, PHONE_PLACEHOLDER);
+            String name = customerNameField.getText().trim();
+            String phone = phoneNumberField.getText().trim();
+            String inTime = (String) checkInTimeCombo.getSelectedItem();
+            String outTime = (String) checkOutTimeCombo.getSelectedItem();
 
-            String estimatedInTime = (String) checkInTimeCombo.getSelectedItem();
-            String estimatedOutTime = (String) checkOutTimeCombo.getSelectedItem();
-
-            if (customerName == null || phoneNumber == null) {
-                JOptionPane.showMessageDialog(this, "이름과 전화번호를 입력해주세요.");
+            if(name.isEmpty() || phone.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "정보 누락");
                 return;
             }
 
-            String confirmMsg = paymentMethod.equals("immediate")
-                    ? "보장 예약으로 진행됩니다. 지금 결제하시겠습니까?"
-                    : "<html>현장 결제로 진행됩니다.<br><font color='red'><b>당일 18시까지 미 체크인 시 자동 취소</b></font>됩니다.<br>진행하시겠습니까?</html>";
-
-            int result = JOptionPane.showConfirmDialog(this, confirmMsg, "예약 확인", JOptionPane.YES_NO_OPTION);
-
-            if (result == JOptionPane.YES_OPTION) {
-                manager.finalSaveReservation(
-                        customerName,
-                        phoneNumber,
-                        paymentMethod,
-                        estimatedInTime,
-                        estimatedOutTime
-                );
+            int res = JOptionPane.showConfirmDialog(this, "예약을 확정하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION);
+            if (res == JOptionPane.YES_OPTION) {
+                manager.finalSaveReservation(name, phone, paymentMethod, inTime, outTime);
             }
         });
 
@@ -175,105 +136,33 @@ public class Reservation_InfoPanel extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    // =================================================================
-    // ★ 시간 옵션을 생성하는 헬퍼 메서드
-    // =================================================================
-    private String[] generateTimeOptions(int startHour, int endHour, int intervalMinutes) {
-        List<String> times = new ArrayList<>();
-        for (int hour = startHour; hour <= endHour; hour++) {
-            for (int minute = 0; minute < 60; minute += intervalMinutes) {
-                if (hour == endHour && minute > 0) break; // EndHour 정각까지만 포함
-
-                String time = String.format("%02d:%02d", hour, minute);
-
-                // EndHour 정각을 제외하고 마지막 시점 체크
-                if (hour == endHour && minute == 0 && times.contains(time)) continue;
-
-                times.add(time);
-            }
-        }
-        // EndHour 정각이 포함되지 않았다면 (예: 22:00) 추가
-        String lastTime = String.format("%02d:00", endHour);
-        if (!times.contains(lastTime)) {
-            times.add(lastTime);
-        }
-
-        return times.toArray(new String[0]);
-    }
-
-    // =================================================================
-    // ★ 요약 정보 업데이트 메소드
-    // =================================================================
-
-    /**
-     * 이 패널이 보여질 때마다 Manager가 이 메서드를 호출해서
-     * 요약 정보를 업데이트합니다.
-     */
     public void updateSummary() {
-
         String priceFormatted = String.format(Locale.US, "%,d", manager.getTotalPrice());
 
-        // JComboBox의 항목이 채워지지 않았을 경우를 대비하여 null 체크 추가
-        String inTime = (checkInTimeCombo.getSelectedItem() != null) ? (String) checkInTimeCombo.getSelectedItem() : "미정";
-        String outTime = (checkOutTimeCombo.getSelectedItem() != null) ? (String) checkOutTimeCombo.getSelectedItem() : "미정";
+        // ⭐ [핵심] 1단계에서 입력한 이름/전화번호를 자동으로 채워줌
+        customerNameField.setText(manager.getCustomerName());
+        phoneNumberField.setText(manager.getPhoneNumber());
 
-
-        summaryTextArea.setText(
-                String.format(" --- 예약 정보 요약 --- \n\n" +
-                                " 체크인 날짜: \t%s\n" +
-                                " 체크아웃 날짜:\t%s (%d박)\n" +
-                                " 예상 IN 시간: \t%s\n" +
-                                " 예상 OUT 시간:\t%s\n" +
-                                " 인원: \t%d명\n" +
-                                " 등급: \t%s\n" +
-                                " 객실: \t%s호\n\n" +
-                                " 총 요금: \t%s원",
-
-                        new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckInDate()),
-                        new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckOutDate()),
-                        manager.getNights(),
-
-                        inTime, // 선택된 IN 시간
-                        outTime, // 선택된 OUT 시간
-
-                        manager.getGuestCount(),
-                        manager.getSelectedGrade(),
-                        manager.getSelectedRoom(),
-                        priceFormatted
-                ));
+        summaryTextArea.setText(String.format(
+                " [예약 정보 요약]\n 날짜: %s ~ %s (%d박)\n 인원: %d명\n 객실: %s / %s호\n 총액: %s원",
+                new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckInDate()),
+                new SimpleDateFormat("yyyy-MM-dd").format(manager.getCheckOutDate()),
+                manager.getNights(),
+                manager.getGuestCount(),
+                manager.getSelectedGrade(),
+                manager.getSelectedRoom(),
+                priceFormatted
+        ));
     }
 
-    // (플레이스홀더 헬퍼 메소드)
-    private JTextField createPlaceholderField(String placeholder) {
-        JTextField textField = new JTextField(20);
-        textField.setText(placeholder);
-        textField.setForeground(Color.GRAY);
-
-        textField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (textField.getText().equals(placeholder)) {
-                    textField.setText("");
-                    textField.setForeground(Color.BLACK);
-                }
+    private String[] generateTimeOptions(int start, int end, int interval) {
+        List<String> t = new ArrayList<>();
+        for(int h=start; h<=end; h++) {
+            for(int m=0; m<60; m+=interval) {
+                if(h==end && m>0) break;
+                t.add(String.format("%02d:%02d", h, m));
             }
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (textField.getText().isEmpty()) {
-                    textField.setText(placeholder);
-                    textField.setForeground(Color.GRAY);
-                }
-            }
-        });
-        return textField;
-    }
-
-    // (플레이스홀더 입력값 가져오는 헬퍼 메소드)
-    private String getActualInput(JTextField textField, String placeholder) {
-        String text = textField.getText().trim();
-        if (text.isEmpty() || text.equals(placeholder)) {
-            return null;
         }
-        return text;
+        return t.toArray(new String[0]);
     }
 }

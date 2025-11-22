@@ -1,27 +1,29 @@
 package hms.model;
 
+import java.io.Serializable; // ⭐ 이 줄이 꼭 필요합니다!
+
 /**
  * 회원 '바구니' (Data Transfer Object)
- * (★수정: 'role' 필드 추가됨)
+ * (★수정: Serializable 구현 추가)
  */
-public class User {
+public class User implements Serializable { // ⭐ implements Serializable 추가
+
+    private static final long serialVersionUID = 1L; // 버전 관리용 ID (선택 권장)
+
     private String id;
     private String password;
     private String name;
     private String phoneNumber;
     private int age;
-    private String role; // (★ 1/3) '역할' 필드 추가
+    private String role;
 
-    /**
-     * (★ 2/3) 생성자 수정 (6개 항목을 받도록 변경)
-     */
     public User(String id, String password, String name, String phoneNumber, int age, String role) {
         this.id = id;
         this.password = password;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.age = age;
-        this.role = role; // (★ '역할' 저장)
+        this.role = role;
     }
 
     // --- Getter 메서드들 ---
@@ -46,9 +48,6 @@ public class User {
         return age;
     }
 
-    /**
-     * (★ 3/3) '역할'을 반환하는 getter 추가
-     */
     public String getRole() {
         return role;
     }
