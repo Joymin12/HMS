@@ -1,5 +1,6 @@
 package hms.controller;
 
+import hms.network.NetworkMessage; // 네트워크 통신을 위한 import
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -7,244 +8,113 @@ import java.util.Date;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 
 public class ReservationController {
 
+    // ---------------------------------------------------------------------
+    // ⭐ 1. 상수 정의 (Constants)
+    // ---------------------------------------------------------------------
+
+    // 파일 경로 및 인덱스 상수 (⭐ 파일 I/O 로직을 유지하기 위해 경로 상수는 남겨둡니다.)
     private static final String RESERVATION_FILE = "data/reservation_info.txt";
-    // ⭐ 상태 상수 추가
-    public static final String STATUS_PENDING = "PENDING"; // 예약은 완료했지만 미체크인 상태
-    public static final String STATUS_CHECKED_IN = "CHECKED_IN"; // 체크인 완료 상태
-    public static final String STATUS_CHECKED_OUT = "CHECKED_OUT"; // 체크아웃 완료 상태
-    public static final int RES_IDX_ID = 0; // 예약 ID 인덱스
-    public static final int RES_IDX_ROOM_NUM = 9; // 객실 번호 인덱스
-    public static final int RES_IDX_TOTAL_PRICE = 10; // 총 요금 인덱스
-    public static final int RES_IDX_STATUS = 12; // 상태 인덱스
-    public static final int RES_IDX_CHECKOUT_TIME = 13; // 체크아웃 시간 인덱스 (14번째 필드)
+
+    // 🚨 Public으로 수정: 외부 클래스(View)에서 접근 가능한 인덱스 상수
+    public static final int RES_IDX_ID = 0;              // 예약 번호 인덱스
+    public static final int RES_IDX_ROOM_NUM = 9;        // 객실 번호 인덱스
+    public static final int RES_IDX_TOTAL_PRICE = 10;    // 총 요금 인덱스
+    public static final int RES_IDX_STATUS = 12;         // 상태 인덱스
+    public static final int RES_IDX_CHECKOUT_TIME = 13;  // 체크아웃 시간 인덱스
+
+    // 🚨 Public으로 수정: 외부 클래스(View)에서 접근 가능한 예약 상태 상수
+    public static final String STATUS_PENDING = "PENDING";       // 예약 대기 (초기값)
+    public static final String STATUS_CHECKED_IN = "CHECKED_IN"; // 체크인 완료
+    public static final String STATUS_CHECKED_OUT = "CHECKED_OUT"; // 체크아웃 완료
+
+    // ⭐ 서버 IP (서버 컴퓨터의 IP로 변경하세요)
+    private String serverIp = "192.168.0.2";
+    private int serverPort = 5000;
+
+    // --- 공통 통신 헬퍼 ---
+    private NetworkMessage sendRequest(String command, Object data) {
+        try (Socket socket = new Socket(serverIp, serverPort);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject(new NetworkMessage(command, data));
+            out.flush();
+            return (NetworkMessage) in.readObject();
+
+        } catch (Exception e) {
+            // 통신 오류 발생 시 실패 응답 반환
+            System.err.println("네트워크 통신 오류 발생: " + e.getMessage());
+            return new NetworkMessage(false, "통신 오류", null);
+        }
+    }
+
 
     // ---------------------------------------------------------------------
-    // 1. 예약 저장 (Save Reservation)
+    // 1. 예약 저장 (Save Reservation) - Network 로직 사용
     // ---------------------------------------------------------------------
     public boolean saveReservationToFile(Map<String, Object> data) {
-        String datePart = new SimpleDateFormat("yyMMdd").format(new Date());
-        int randomPart = (int)(Math.random() * 900000) + 100000;
-        String confirmationId = datePart + "-" + randomPart;
-        // 2. CSV 라인 구성 (총 14개 필드)
-        String line = String.join(",",
-                confirmationId,                              // 0. 예약 번호
-                (String) data.get("customerName"),           // 1. 고객 이름
-                (String) data.get("phoneNumber"),            // 2. 전화번호
-                (String) data.get("checkIn"),                // 3. 체크인 날짜
-                (String) data.get("checkOut"),               // 4. 체크아웃 날짜
-                (String) data.get("estimatedInTime"),        // 5. 예상 IN 시간
-                (String) data.get("estimatedOutTime"),       // 6. 예상 OUT 시간
-                String.valueOf(data.get("guests")),          // 7. 인원 수
-                (String) data.get("grade"),                  // 8. 등급
-                (String) data.get("room"),                   // 9. 객실 번호
-                String.valueOf(data.get("totalPrice")),      // 10. 총 요금
-                (String) data.get("paymentMethod"),           // 11. 결제 방식
-                STATUS_PENDING,                              // 12. 예약 상태
-                ""                                           // 13. 체크아웃 시간 (초기 빈 값)
-        );
+        // 네트워크 요청에 필요한 데이터 구성 및 전송 (파일 I/O 로직은 서버 측에 존재)
+        NetworkMessage res = sendRequest("RES_SAVE", data);
+        return res.isSuccess();
 
-        // 3. 디렉토리 생성 및 권한 처리
-        try {
-            File file = new File(RESERVATION_FILE);
-            File parentDir = file.getParentFile();
-            if (parentDir != null && !parentDir.exists()) {
-                parentDir.mkdirs();
-            }
-        } catch (Exception e) {
-            System.err.println("디렉토리 생성 오류 발생: " + e.getMessage());
-            return false;
-        }
-
-        // 4. 파일에 기록
-        try (FileWriter fw = new FileWriter(RESERVATION_FILE, true);
-             PrintWriter pw = new PrintWriter(fw)) {
-
-            pw.println(line);
-            System.out.println("예약 저장 성공: " + confirmationId);
-            return true;
-
-        } catch (IOException e) {
-            System.err.println("[ERROR] 파일 쓰기 오류 발생: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
+        /* 🚨 파일 I/O 로직 (구 버전)은 서버 측으로 이동하거나 제거해야 합니다.
+           현재는 Network 로직만 호출하도록 유지합니다.
+           (만약 파일 I/O 로직이 여전히 필요한 상황이라면, 이 코드를 Network 통신 전에 구현해야 합니다.)
+        */
     }
 
     // ---------------------------------------------------------------------
-    // 2. 예약 검색 (Search Reservation by Name/Phone)
+    // 2. 예약 검색 (Search Reservation by Name/Phone) - Network 로직 사용
     // ---------------------------------------------------------------------
     public String[] searchReservation(String name, String phoneNumber) {
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-
-                if (parts.length < 3) continue;
-
-                if (parts[1].trim().equals(name) && parts[2].trim().equals(phoneNumber)) {
-                    // ⭐ [수정] 14개 필드 기준으로 확장하여 반환 (구형 데이터 호환성 유지)
-                    if (parts.length < RES_IDX_CHECKOUT_TIME + 1) {
-                        String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];
-                        System.arraycopy(parts, 0, newParts, 0, parts.length);
-
-                        if (parts.length <= RES_IDX_STATUS) {
-                            newParts[RES_IDX_STATUS] = STATUS_PENDING;
-                        }
-                        if (parts.length <= RES_IDX_CHECKOUT_TIME) {
-                            newParts[RES_IDX_CHECKOUT_TIME] = "";
-                        }
-                        return newParts;
-                    }
-                    return parts;
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("[ERROR] 예약 파일이 존재하지 않습니다: " + RESERVATION_FILE);
-            return null;
-        } catch (IOException e) {
-            System.err.println("[ERROR] 파일 읽기 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
-            return null;
+        // NetworkMessage는 String[]을 반환한다고 가정
+        NetworkMessage res = sendRequest("RES_SEARCH", name + "," + phoneNumber);
+        if (res.isSuccess() && res.getData() instanceof String[]) {
+            return (String[]) res.getData();
         }
         return null;
     }
 
     // ---------------------------------------------------------------------
-    // 3. 예약 상세 정보 조회 (by ID)
+    // 3. 예약 상세 정보 조회 (by ID) - Network 로직 사용
     // ---------------------------------------------------------------------
     public String[] getReservationDetailsById(String reservationId) {
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-
-                if (parts.length > 0 && parts[RES_IDX_ID].trim().equals(reservationId)) {
-                    // ⭐ [수정] 14개 필드 기준으로 확장하여 반환 (구형 데이터 호환성 유지)
-                    if (parts.length < RES_IDX_CHECKOUT_TIME + 1) {
-                        String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];
-                        System.arraycopy(parts, 0, newParts, 0, parts.length);
-
-                        if (parts.length <= RES_IDX_STATUS) {
-                            newParts[RES_IDX_STATUS] = STATUS_PENDING;
-                        }
-                        if (parts.length <= RES_IDX_CHECKOUT_TIME) {
-                            newParts[RES_IDX_CHECKOUT_TIME] = "";
-                        }
-                        return newParts;
-                    }
-                    return parts;
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("[ERROR] 예약 파일이 존재하지 않습니다: " + RESERVATION_FILE);
-            return null;
-        } catch (IOException e) {
-            System.err.println("[ERROR] 파일 읽기 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
-            return null;
+        NetworkMessage res = sendRequest("RES_GET_BY_ID", reservationId);
+        if (res.isSuccess() && res.getData() instanceof String[]) {
+            return (String[]) res.getData();
         }
         return null;
     }
 
     // ---------------------------------------------------------------------
-    // 4. 예약 상태 업데이트 (Update Status)
+    // 4. 예약 상태 업데이트 (Update Status) - Network 로직 사용
     // ---------------------------------------------------------------------
-
     public boolean updateReservationStatus(String reservationId, String newStatus) {
-        List<String> updatedLines = new ArrayList<>();
-        boolean updated = false;
-
-        // ⭐ [추가] 체크아웃 상태로 변경될 때 현재 시간을 기록합니다.
-        String checkoutTime = newStatus.equals(STATUS_CHECKED_OUT)
-                ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())
-                : "";
-
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-
-                if (parts.length > 0 && parts[RES_IDX_ID].trim().equals(reservationId)) {
-
-                    // ⭐ [수정] 최소 14개 필드를 갖도록 배열을 확장하여 상태와 시간을 안전하게 업데이트
-                    String[] currentParts = parts;
-                    if (currentParts.length < RES_IDX_CHECKOUT_TIME + 1) {
-                        currentParts = new String[RES_IDX_CHECKOUT_TIME + 1];
-                        System.arraycopy(parts, 0, currentParts, 0, parts.length);
-                        // 새로 추가된 필드는 빈 값으로 초기화
-                        for(int i = parts.length; i <= RES_IDX_CHECKOUT_TIME; i++) {
-                            currentParts[i] = "";
-                        }
-                    }
-
-                    // 1. 상태(Index 12) 업데이트
-                    currentParts[RES_IDX_STATUS] = newStatus;
-
-                    // 2. 체크아웃 상태일 때만 시간(Index 13) 업데이트
-                    if (newStatus.equals(STATUS_CHECKED_OUT)) {
-                        currentParts[RES_IDX_CHECKOUT_TIME] = checkoutTime;
-                    }
-
-                    updatedLines.add(String.join(",", currentParts));
-                    updated = true;
-                } else {
-                    updatedLines.add(line);
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("[ERROR] 상태 변경 중 파일 읽기 오류: " + e.getMessage());
-            return false;
-        }
-
-        if (updated) {
-            try (FileWriter fw = new FileWriter(RESERVATION_FILE);
-                 PrintWriter pw = new PrintWriter(fw)) {
-                for (String newLine : updatedLines) {
-                    pw.println(newLine);
-                }
-                System.out.println("예약 ID " + reservationId + " 상태를 " + newStatus + "로 업데이트 완료. 체크아웃 시간: " + checkoutTime);
-                return true;
-            } catch (IOException e) {
-                System.err.println("[ERROR] 상태 변경 중 파일 쓰기 오류: " + e.getMessage());
-                return false;
-            }
-        }
-        return false;
+        NetworkMessage res = sendRequest("RES_UPDATE_STATUS", reservationId + "," + newStatus);
+        return res.isSuccess();
     }
 
+
     // ---------------------------------------------------------------------
-    // 5. 예약된 방 목록 검색 (Get Booked Rooms - 날짜 겹침 확인)
+    // 5. 예약된 방 목록 검색 (Get Booked Rooms - 날짜 겹침 확인) - Network 로직 사용
     // ---------------------------------------------------------------------
     public List<String> getBookedRooms(String checkInStr, String checkOutStr) {
-        List<String> bookedRooms = new ArrayList<>();
-        LocalDate checkIn = LocalDate.parse(checkInStr);
-        LocalDate checkOut = LocalDate.parse(checkOutStr);
-
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-
-                if (parts.length < 12) continue;
-
-                LocalDate fileCheckIn = LocalDate.parse(parts[3].trim());
-                LocalDate fileCheckOut = LocalDate.parse(parts[4].trim());
-                String roomNumber = parts[RES_IDX_ROOM_NUM].trim();
-
-                if (checkIn.isBefore(fileCheckOut) && checkOut.isAfter(fileCheckIn)) {
-                    bookedRooms.add(roomNumber);
-                }
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("[ERROR] 예약 파일이 존재하지 않습니다. 빈 목록을 반환합니다.");
-        } catch (Exception e) {
-            System.err.println("[ERROR] 예약된 방 검색 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
+        NetworkMessage res = sendRequest("RES_GET_BOOKED", checkInStr + "," + checkOutStr);
+        if (res.isSuccess() && res.getData() instanceof List) {
+            return (List<String>) res.getData();
         }
-        return bookedRooms;
+        return new ArrayList<>();
     }
 
     // ---------------------------------------------------------------------
@@ -253,6 +123,7 @@ public class ReservationController {
     public long getRoomCharge(String[] reservationData) {
         if (reservationData.length > RES_IDX_TOTAL_PRICE) {
             try {
+                // 숫자가 아닌 문자(쉼표 등) 제거 후 파싱
                 String priceStr = reservationData[RES_IDX_TOTAL_PRICE].replaceAll("[^0-9]", "");
                 return Long.parseLong(priceStr);
             } catch (NumberFormatException e) {
@@ -264,7 +135,39 @@ public class ReservationController {
     }
 
     // ---------------------------------------------------------------------
-    // ⭐ [추가] 7. 룸서비스 객실 인증 (Authentication)
+    // ⭐ 7. 예약 유효성 검증 및 체크인 처리 (UserMainFrame 요구 사항)
+    // ---------------------------------------------------------------------
+    /**
+     * 예약 ID를 검증하고, 예약 상태가 PENDING인 경우 체크인 상태로 변경합니다.
+     * @param reservationId 검증할 예약 ID
+     * @param roomNumber 배정/확인된 객실 번호
+     * @return 성공 시 true, 예약 정보가 없거나 상태가 PENDING이 아니거나 객실 번호가 일치하지 않으면 false
+     */
+    public boolean validateReservationAndCheckIn(String reservationId, String roomNumber) {
+        // 서버 측에서 이 복잡한 검증 로직을 수행하도록 Network 요청을 보냅니다.
+        NetworkMessage res = sendRequest("RES_VALIDATE_CHECKIN", reservationId + "," + roomNumber);
+
+        // 서버 응답이 성공이고, 메시지가 긍정적이면 true
+        if (res.isSuccess()) {
+            System.out.println("[SUCCESS] 체크인 처리 완료: ID " + reservationId);
+            return true;
+        } else {
+            // 실패 메시지를 출력하여 디버깅에 도움
+            System.out.println("[FAIL] 체크인 실패: " + res.getMessage());
+            return false;
+        }
+
+        /* 🚨 Note: 원본 파일 I/O 로직은 팀원의 Network 로직과 중복되어 제거되었습니다.
+           만약 Network 통신 없이 파일 I/O로만 처리해야 한다면, 아래 로직을 복구해야 합니다.
+
+           // 1. 예약 정보 조회 및 검증 로직
+           String[] reservationDetails = getReservationDetailsById(reservationId);
+           // ... (나머지 로직)
+        */
+    }
+
+    // ---------------------------------------------------------------------
+    // ⭐ [추가] 8. 룸서비스 객실 인증 (Authentication) - Network 로직 사용
     // ---------------------------------------------------------------------
     /**
      * 예약 ID 뒷 6자리와 객실 번호를 받아, 해당 예약이 CHECKED_IN 상태이며
@@ -273,81 +176,31 @@ public class ReservationController {
      * @param inputRoomNumber 사용자가 입력한 객실 번호
      * @return 인증 및 체크인 상태가 유효하면 true
      */
-    public boolean validateReservationAndCheckIn(String lastSixDigits, String inputRoomNumber) {
-        if (lastSixDigits == null || lastSixDigits.length() != 6 || inputRoomNumber == null || inputRoomNumber.isEmpty()) {
+    public boolean authenticateRoomService(String lastSixDigits, String inputRoomNumber) {
+        String data = lastSixDigits + "," + inputRoomNumber;
+        NetworkMessage res = sendRequest("AUTH_ROOM_SERVICE", data);
+
+        if (res.isSuccess()) {
+            System.out.println("[SUCCESS] 룸서비스 객실 인증 성공.");
+            return true;
+        } else {
+            System.out.println("[FAIL] 룸서비스 객실 인증 실패: " + res.getMessage());
             return false;
         }
-
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-
-                // 데이터 길이 확인
-                if (parts.length > RES_IDX_STATUS) {
-                    String reservationId = parts[RES_IDX_ID].trim();
-                    String roomNumber = parts[RES_IDX_ROOM_NUM].trim();
-                    String status = parts[RES_IDX_STATUS].trim();
-
-                    // ⭐ 3가지 조건 모두 충족 확인
-                    if (reservationId.length() >= 6 &&
-                            reservationId.endsWith(lastSixDigits) &&
-                            status.equals(STATUS_CHECKED_IN) &&
-                            roomNumber.equals(inputRoomNumber)) {
-
-                        return true; // 인증 성공
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("[ERROR] 룸서비스 객실 인증 중 파일 읽기 오류: " + e.getMessage());
-        }
-        return false; // 인증 실패 또는 I/O 오류
     }
 
 
     // ---------------------------------------------------------------------
-    // 8. 체크아웃 처리 (Process Checkout) - CheckoutProcessPanel 요구 사항 (유지)
+    // 9. 체크아웃 처리 (Process Checkout) - Network 로직 사용
     // ---------------------------------------------------------------------
     public boolean processCheckout(String roomNumber) {
-        // 1. 해당 객실 번호로 'CHECKED_IN' 상태의 예약을 찾습니다.
-        String reservationIdToCheckout = null;
-
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-
-                // 예약 ID, 객실 번호, 상태 필드가 있는지 확인
-                if (parts.length > RES_IDX_STATUS) {
-                    String currentRoom = parts[RES_IDX_ROOM_NUM].trim();
-                    String currentStatus = parts[RES_IDX_STATUS].trim();
-
-                    // 해당 객실이 CHECKED_IN 상태인지 확인
-                    if (currentRoom.equals(roomNumber) && currentStatus.equals(STATUS_CHECKED_IN)) {
-                        reservationIdToCheckout = parts[RES_IDX_ID];
-                        break; // 가장 최근/유효한 예약 하나만 처리
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("[ERROR] 체크아웃 대상 예약 검색 중 오류: " + e.getMessage());
+        NetworkMessage res = sendRequest("RES_CHECKOUT", roomNumber);
+        if (res.isSuccess()) {
+            System.out.println("DEBUG: 객실 " + roomNumber + " 체크아웃 완료.");
+            return true;
+        } else {
+            System.out.println("[FAIL] 체크아웃 실패: " + res.getMessage());
             return false;
         }
-
-        if (reservationIdToCheckout != null) {
-            // 2. 해당 예약 ID의 상태를 CHECKED_OUT으로 업데이트 (체크아웃 시간도 자동 기록됨)
-            boolean success = updateReservationStatus(reservationIdToCheckout, STATUS_CHECKED_OUT);
-
-            // 3. (추가 구현 필요: RoomDataManager를 호출하여 객실 상태를 '공실'로 변경)
-
-            if (success) {
-                System.out.println("DEBUG: 객실 " + roomNumber + " 예약 ID " + reservationIdToCheckout + " 체크아웃 완료.");
-                return true;
-            }
-        } else {
-            System.out.println("DEBUG: 객실 " + roomNumber + " 에 대한 현재 CHECKED_IN 상태의 예약을 찾을 수 없습니다.");
-        }
-        return false;
     }
 }
