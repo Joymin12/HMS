@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 // import hms.view.ReservationCheckFrame;
 // import hms.view.RoomServiceOrderFrame;
 // import hms.view.CheckInOutFrame;
+import hms.view.ReportFrame; // import 추가
 
 public class AdminMainFrame extends JFrame {
 
