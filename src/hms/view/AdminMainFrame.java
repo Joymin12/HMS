@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 // import hms.view.ReservationCheckFrame;
 // import hms.view.RoomServiceOrderFrame;
 // import hms.view.CheckInOutFrame;
+import hms.view.ReportFrame; // import 추가
 
 public class AdminMainFrame extends JFrame {
 
@@ -137,10 +138,13 @@ public class AdminMainFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "객실 및 가격 관리 화면 호출 (RoomManagementFrame 구현 필요)", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
         });
 
-        // 6. 매출 보고서 (준비 중 유지)
+        // 6. 매출 보고서 (액션 활성화)
         btnReport.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "매출 및 예약 보고서 화면 호출 (ReportFrame 구현 필요)", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
+            // ⭐ [수정] 현재 창을 숨기고 ReportFrame 호출 시 this(AdminMainFrame)를 인수로 전달합니다.
+            this.setVisible(false);
+            new ReportFrame(this);
         });
+
 
 
         gridPanel.add(btnReservation);
