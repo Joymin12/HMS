@@ -4,6 +4,7 @@ import hms.controller.ReportController;
 import com.toedter.calendar.JDateChooser;
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat; // ⭐ 이 줄이 반드시 있어야 합니다!
 import java.util.Date;
 import java.util.Map;
 
@@ -14,6 +15,8 @@ public class ReportPanel extends JPanel {
     private JDateChooser startDateChooser;
     private JDateChooser endDateChooser;
     private JTextArea summaryArea;
+
+    // 날짜 포맷터 (이 부분에서 오류가 났었습니다)
     private final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     public ReportPanel(ReportFrame parentFrame) {

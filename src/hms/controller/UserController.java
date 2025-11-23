@@ -8,7 +8,7 @@ import java.net.Socket;
 public class UserController {
 
     private User currentlyLoggedInUser = null;
-    private String serverIp = "192.168.0.2"; // 서버 IP
+    private String serverIp = "127.0.0.1"; // 서버 IP
     private int serverPort = 5000;
 
     // 통신 헬퍼 메소드

@@ -8,15 +8,21 @@ import java.util.Map;
 
 public class ReportController {
 
+    // ⭐ 오류가 났던 부분: 변수 선언을 확실하게 추가했습니다.
+    // 님의 IP (192.168.0.2)로 설정해두었습니다.
+    private final String SERVER_IP = "127.0.0.1";
     private final int SERVER_PORT = 5000;
 
     private NetworkMessage send(String cmd, Object data) {
+        // 여기서 SERVER_IP 변수를 사용합니다.
         try (Socket s = new Socket(SERVER_IP, SERVER_PORT);
              ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(s.getInputStream())) {
+
             out.writeObject(new NetworkMessage(cmd, data));
             out.flush();
             return (NetworkMessage) in.readObject();
+
         } catch (Exception e) {
             return new NetworkMessage(false, "통신오류", null);
         }

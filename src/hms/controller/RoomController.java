@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RoomController {
-    private final String SERVER_IP = "192.168.0.2";
+    private final String SERVER_IP = "127.0.0.1";
     private final int SERVER_PORT = 5000;
 
     // 공통 전송 메소드
@@ -28,6 +28,9 @@ public class RoomController {
     // 조회
     public List<String[]> getAllRooms() {
         NetworkMessage res = send("ROOM_GET_ALL", null);
+        if (!res.isSuccess()) {
+            System.out.println("데이터 가져오기 실패: " + res.getMessage());
+        }
         return res.isSuccess() ? (List<String[]>) res.getData() : new ArrayList<>();
     }
 

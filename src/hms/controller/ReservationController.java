@@ -20,7 +20,7 @@ public class ReservationController {
     public static final String STATUS_CHECKED_IN = "CHECKED_IN";
     public static final String STATUS_CHECKED_OUT = "CHECKED_OUT";
 
-    private String serverIp = "192.168.0.2";
+    private String serverIp = "127.0.0.1";
     private int serverPort = 5000;
 
     private NetworkMessage sendRequest(String command, Object data) {
