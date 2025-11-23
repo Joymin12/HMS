@@ -2,24 +2,18 @@ package hms.model;
 
 import java.io.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.text.SimpleDateFormat;
 
 public class ReservationDataManager {
 
     private static final String RESERVATION_FILE = "data/reservation_info.txt";
     // 인덱스 상수
     public static final int RES_IDX_ID = 0;
-    public static final int RES_IDX_NAME = 1;
-    public static final int RES_IDX_PHONE = 2;
-    public static final int RES_IDX_CHECK_IN_DATE = 3;
-    public static final int RES_IDX_CHECKOUT_DATE = 4;
     public static final int RES_IDX_ROOM_NUM = 9;
-    public static final int RES_IDX_TOTAL_PRICE = 10;
     public static final int RES_IDX_STATUS = 12;
     public static final int RES_IDX_CHECKOUT_TIME = 13;
 
@@ -28,6 +22,7 @@ public class ReservationDataManager {
     public static final String STATUS_CHECKED_OUT = "CHECKED_OUT";
 
     public ReservationDataManager() {
+        // 데이터 폴더 확인 및 생성
         File file = new File(RESERVATION_FILE);
         if (!file.exists()) {
             if (file.getParentFile() != null) {
@@ -56,7 +51,7 @@ public class ReservationDataManager {
                 String.valueOf(data.get("totalPrice")),
                 (String) data.get("paymentMethod"),
                 STATUS_PENDING,
-                (String) data.get("userId")
+                (String) data.get("userId") // 14번째 필드 (예약자 ID)
         );
 
         try (FileWriter fw = new FileWriter(RESERVATION_FILE, true);
@@ -64,6 +59,7 @@ public class ReservationDataManager {
             pw.println(line);
             return true;
         } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -75,11 +71,11 @@ public class ReservationDataManager {
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",", -1);
                 if (parts.length < 3) continue;
-                if (parts[RES_IDX_NAME].trim().equals(name) && parts[RES_IDX_PHONE].trim().equals(phoneNumber)) {
+                if (parts[1].trim().equals(name) && parts[2].trim().equals(phoneNumber)) {
                     return parts;
                 }
             }
-        } catch (IOException e) { }
+        } catch (IOException e) { e.printStackTrace(); }
         return null;
     }
 
@@ -93,7 +89,7 @@ public class ReservationDataManager {
                     return parts;
                 }
             }
-        } catch (IOException e) { }
+        } catch (IOException e) { e.printStackTrace(); }
         return null;
     }
 
@@ -109,6 +105,7 @@ public class ReservationDataManager {
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",", -1);
                 if (parts.length > RES_IDX_STATUS && parts[RES_IDX_ID].equals(id)) {
+                    // 배열 크기가 작으면 확장
                     if (parts.length <= RES_IDX_CHECKOUT_TIME) {
                         String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];
                         System.arraycopy(parts, 0, newParts, 0, parts.length);
@@ -146,61 +143,16 @@ public class ReservationDataManager {
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",", -1);
                 if (parts.length < 12) continue;
+
                 try {
-                    LocalDate rIn = LocalDate.parse(parts[RES_IDX_CHECK_IN_DATE]);
-                    LocalDate rOut = LocalDate.parse(parts[RES_IDX_CHECKOUT_DATE]);
+                    LocalDate rIn = LocalDate.parse(parts[3]);
+                    LocalDate rOut = LocalDate.parse(parts[4]);
                     if (checkIn.isBefore(rOut) && checkOut.isAfter(rIn)) {
-                        booked.add(parts[RES_IDX_ROOM_NUM]);
-                    }
-                } catch (Exception e) { }
-            }
-        } catch (IOException e) { }
-        return booked;
-    }
-
-    // 6. 체크아웃 처리 (방 번호로)
-    public boolean processCheckoutByRoom(String roomNumber) {
-        String targetId = null;
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-                if (parts.length > RES_IDX_STATUS) {
-                    if (parts[RES_IDX_ROOM_NUM].trim().equals(roomNumber) &&
-                            parts[RES_IDX_STATUS].trim().equals(STATUS_CHECKED_IN)) {
-                        targetId = parts[RES_IDX_ID];
-                        break;
-                    }
-                }
-            }
-        } catch (IOException e) { return false; }
-
-        return targetId != null && updateStatus(targetId, STATUS_CHECKED_OUT);
-    }
-
-    // ⭐⭐⭐ [신규 추가] 기간별 예약 목록 조회 (보고서용) ⭐⭐⭐
-    public List<String[]> getReservationsByPeriod(String startStr, String endStr) {
-        List<String[]> list = new ArrayList<>();
-        LocalDate startDate = LocalDate.parse(startStr);
-        LocalDate endDate = LocalDate.parse(endStr);
-
-        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",", -1);
-                if (parts.length < 12) continue;
-
-                try {
-                    LocalDate checkIn = LocalDate.parse(parts[RES_IDX_CHECK_IN_DATE]);
-                    LocalDate checkOut = LocalDate.parse(parts[RES_IDX_CHECKOUT_DATE]);
-
-                    // 기간 겹침 확인 (Overlap)
-                    if (!startDate.isAfter(checkOut) && !endDate.isBefore(checkIn)) {
-                        list.add(parts);
+                        booked.add(parts[9]); // 방 번호
                     }
                 } catch (Exception e) { continue; }
             }
         } catch (IOException e) { e.printStackTrace(); }
-        return list;
+        return booked;
     }
 }

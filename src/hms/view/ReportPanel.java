@@ -3,13 +3,9 @@ package hms.view;
 import hms.controller.ReportController;
 import com.toedter.calendar.JDateChooser;
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.text.NumberFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
-import java.text.SimpleDateFormat;
 
 public class ReportPanel extends JPanel {
 
