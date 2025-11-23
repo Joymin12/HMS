@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class ReportController {
 
-    private final String SERVER_IP = "127.0.0.1";
+    private final String SERVER_IP = "192.168.0.2";
     private final int SERVER_PORT = 5000;
 
     private NetworkMessage send(String cmd, Object data) {
