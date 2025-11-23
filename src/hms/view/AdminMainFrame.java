@@ -133,9 +133,10 @@ public class AdminMainFrame extends JFrame {
             new CheckInOutFrame(this, this.reservationController);
         });
 
-        // 5. 객실/가격 관리 (준비 중 유지)
+        // 5. 객실/가격 관리 (연결 완료)
         btnRoomManagement.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "객실 및 가격 관리 화면 호출 (RoomManagementFrame 구현 필요)", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
+            this.setVisible(false);
+            new RoomManagementFrame(this); // 실제 관리 화면 호출
         });
 
         // 6. 매출 보고서 (액션 활성화)

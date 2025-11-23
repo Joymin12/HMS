@@ -1,13 +1,15 @@
 package hms.server;
 
-import hms.network.NetworkMessage;
+import hms.model.ReservationDataManager;
+import hms.model.RoomDataManager; // [추가됨]
+import hms.model.RoomServiceDataManager;
 import hms.model.User;
 import hms.model.UserDataManager;
-import hms.model.ReservationDataManager;
-import hms.model.RoomServiceDataManager;
+import hms.network.NetworkMessage;
 
 import java.io.*;
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -19,19 +21,23 @@ public class HMSServer {
         try (ServerSocket serverSocket = new ServerSocket(5000)) {
             System.out.println(">>> HMS 서버(Port:5000)가 시작되었습니다.");
 
+            // 각 매니저 객체 생성
             UserDataManager userMgr = new UserDataManager();
             ReservationDataManager resMgr = new ReservationDataManager();
             RoomServiceDataManager rsMgr = new RoomServiceDataManager();
+            RoomDataManager roomMgr = new RoomDataManager(); // [추가됨] 객실 매니저 생성
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println(">>> 클라이언트 접속: " + clientSocket.getInetAddress());
-                new Thread(() -> handleClient(clientSocket, userMgr, resMgr, rsMgr)).start();
+                // [수정됨] roomMgr를 핸들러 스레드에 전달
+                new Thread(() -> handleClient(clientSocket, userMgr, resMgr, rsMgr, roomMgr)).start();
             }
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    private static void handleClient(Socket socket, UserDataManager userMgr, ReservationDataManager resMgr, RoomServiceDataManager rsMgr) {
+    // [수정됨] 인자에 RoomDataManager 추가
+    private static void handleClient(Socket socket, UserDataManager userMgr, ReservationDataManager resMgr, RoomServiceDataManager rsMgr, RoomDataManager roomMgr) {
         try (
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
@@ -44,7 +50,9 @@ public class HMSServer {
                     System.out.println("[요청] " + cmd);
 
                     switch (cmd) {
-                        // [회원]
+                        // ========================================================
+                        // [회원 관리]
+                        // ========================================================
                         case "LOGIN":
                             String[] login = ((String) req.getData()).split(",");
                             User user = userMgr.findUserById(login[0]);
@@ -60,7 +68,9 @@ public class HMSServer {
                             res = new NetworkMessage(userMgr.deleteUserById((String)req.getData()), "탈퇴", null);
                             break;
 
-                        // [예약]
+                        // ========================================================
+                        // [예약 관리]
+                        // ========================================================
                         case "RES_SAVE":
                             res = new NetworkMessage(resMgr.saveReservation((Map<String,Object>)req.getData()), "예약저장", null);
                             break;
@@ -86,17 +96,16 @@ public class HMSServer {
                             String[] vd = ((String)req.getData()).split(",");
                             String[] ri = resMgr.getReservationById(vd[0]);
                             boolean vOk = (ri!=null && ri.length>12 && ri[0].equals(vd[0]) && ri[9].equals(vd[1]) && ri[12].equals("CHECKED_IN"));
-                            res = new NetworkMessage(vOk, "검증", null); // 로직 보완
+                            res = new NetworkMessage(vOk, "검증", null);
                             break;
-                        case "AUTH_ROOM_SERVICE": // 룸서비스 인증
-                            String[] authData = ((String) req.getData()).split(",");
-                            String sixDigits = authData[0];
-                            String roomNum = authData[1];
-                            // 간단 인증 로직 (실제로는 파일 전체 검색 필요)
+                        case "AUTH_ROOM_SERVICE":
+                            // 룸서비스 인증 (임시)
                             res = new NetworkMessage(true, "인증성공(임시)", null);
                             break;
 
-                        // [룸서비스]
+                        // ========================================================
+                        // [룸서비스 관리]
+                        // ========================================================
                         case "RS_GET_ALL_MENU": res = new NetworkMessage(true, "메뉴", rsMgr.getAllMenu()); break;
                         case "RS_GET_CATEGORIES": res = new NetworkMessage(true, "카테고리", rsMgr.getAllCategories()); break;
                         case "RS_GET_MENU_BY_CAT": res = new NetworkMessage(true, "메뉴", rsMgr.getMenuByCategory((String)req.getData())); break;
@@ -124,7 +133,9 @@ public class HMSServer {
                             res = new NetworkMessage(rsMgr.updateStatusByRoomAndStatus(rstat[0], rstat[1], rstat[2]), "일괄변경", null);
                             break;
 
-                        // ⭐⭐⭐ [보고서 생성] ⭐⭐⭐
+                        // ========================================================
+                        // [보고서 생성]
+                        // ========================================================
                         case "REPORT_GENERATE":
                             String[] rdates = ((String) req.getData()).split(",");
                             String start = rdates[0], end = rdates[1];
@@ -133,23 +144,20 @@ public class HMSServer {
                             List<String[]> rsList = rsMgr.getPaidRequestsByPeriod(start, end);
 
                             long roomRev = 0, fnbRev = 0, occNights = 0;
-                            int totalRooms = 24; // 전체 객실 수 (임의 설정)
+                            int totalRooms = 24;
                             LocalDate sDate = LocalDate.parse(start), eDate = LocalDate.parse(end);
                             long days = ChronoUnit.DAYS.between(sDate, eDate) + 1;
                             long capacity = totalRooms * days;
 
                             for (String[] r : resList) {
                                 try {
-                                    // 매출: 체크아웃 완료건
                                     if(r[12].equals("CHECKED_OUT")) roomRev += Long.parseLong(r[10]);
-
-                                    // 점유율: 기간 겹침 계산
                                     LocalDate rIn = LocalDate.parse(r[3]), rOut = LocalDate.parse(r[4]);
                                     LocalDate os = rIn.isAfter(sDate) ? rIn : sDate;
                                     LocalDate oe = rOut.isBefore(eDate) ? rOut : eDate;
                                     if(!os.isAfter(oe)) {
                                         long n = ChronoUnit.DAYS.between(os, oe);
-                                        if(!os.equals(rOut)) n+=1; // 마지막날 포함 여부 보정 (단순화)
+                                        if(!os.equals(rOut)) n+=1;
                                         occNights += Math.max(0, n);
                                     }
                                 } catch(Exception e){}
@@ -157,16 +165,30 @@ public class HMSServer {
                             for (String[] rs : rsList) { try{ fnbRev += Long.parseLong(rs[3]); }catch(Exception e){} }
 
                             double occRate = (capacity>0) ? ((double)occNights/capacity)*100 : 0;
-
                             Map<String, Object> rpt = new HashMap<>();
-                            rpt.put("RoomRevenue", roomRev);
-                            rpt.put("FNBRevenue", fnbRev);
-                            rpt.put("TotalRevenue", roomRev+fnbRev);
-                            rpt.put("OccupancyRate", occRate);
-                            rpt.put("TotalCapacity", capacity);
-                            rpt.put("OccupiedNights", occNights);
+                            rpt.put("RoomRevenue", roomRev); rpt.put("FNBRevenue", fnbRev);
+                            rpt.put("TotalRevenue", roomRev+fnbRev); rpt.put("OccupancyRate", occRate);
+                            rpt.put("TotalCapacity", capacity); rpt.put("OccupiedNights", occNights);
 
                             res = new NetworkMessage(true, "보고서", rpt);
+                            break;
+
+                        // ========================================================
+                        // [신규 추가: 객실 및 가격 관리]
+                        // ========================================================
+                        case "ROOM_GET_ALL":
+                            res = new NetworkMessage(true, "조회", roomMgr.getAllRooms());
+                            break;
+                        case "ROOM_ADD":
+                            Map<String, Object> ra = (Map<String, Object>) req.getData();
+                            res = new NetworkMessage(roomMgr.addRoom((String)ra.get("roomNum"), (String)ra.get("grade"), (Integer)ra.get("price")), "추가", null);
+                            break;
+                        case "ROOM_UPDATE":
+                            Map<String, Object> ru = (Map<String, Object>) req.getData();
+                            res = new NetworkMessage(roomMgr.updateRoom((String)ru.get("roomNum"), (String)ru.get("grade"), (Integer)ru.get("price")), "수정", null);
+                            break;
+                        case "ROOM_DELETE":
+                            res = new NetworkMessage(roomMgr.deleteRoom((String)req.getData()), "삭제", null);
                             break;
 
                         default: res = new NetworkMessage(false, "알수없는명령", null);
