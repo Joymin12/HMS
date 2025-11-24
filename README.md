@@ -16,3 +16,11 @@ TODO: 11시 이후 추가요금 (체크아웃 시 청구서에 룸서비스+레�
 TODO: UserMainFrame 내 정보 기능 방향성 정하기 (삭제 or 유지)
 
 TODO: TCP 통신 (지성)
+
+클라이언트 .jar 실행 방법
+
+HMS 최상위 폴더 들어간 후 java -jar HMS_Client.jar
+
+서버 .jar 실행 방법
+
+HMS 최상위 폴더 들어간 후 java -jar HMS_Server.jar
