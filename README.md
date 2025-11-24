@@ -17,10 +17,16 @@ TODO: UserMainFrame 내 정보 기능 방향성 정하기 (삭제 or 유지)
 
 TODO: TCP 통신 (지성)
 
-클라이언트 .jar 실행 방법
+--------------------------------------------------------------------------
+실행 순서 (C:\HMS 폴더 기준)
+폴더 이동: 먼저 .jar 파일이 있는 디렉토리로 이동.
 
-HMS 최상위 폴더 들어간 후 java -jar HMS_Client.jar
+java -jar 명령어로 실행 
 
-서버 .jar 실행 방법
+Server .jar 파일 실행
 
-HMS 최상위 폴더 들어간 후 java -jar HMS_Server.jar
+java -jar HMS_Server.jar
+
+Client .jar 파일 실행
+
+java -jar HMS_Client.jar
