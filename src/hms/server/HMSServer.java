@@ -51,7 +51,7 @@ public class HMSServer {
 
                     switch (cmd) {
                         // ========================================================
-                        // [1] 회원 관리 (UserController 대응)
+                        // [1] 회원 관리 (UserController 대응) - [최종 수정]
                         // ========================================================
                         case "LOGIN":
                             String[] login = ((String) req.getData()).split(",");
@@ -60,56 +60,80 @@ public class HMSServer {
                             break;
                         case "SIGNUP":
                             User newUser = (User) req.getData();
-                            if (userMgr.checkIfUserExists(newUser.getId())) res = new NetworkMessage(false, "ID중복", 1);
+                            // ⭐⭐ [최종 수정]: isUserIdExists로 ID 중복 체크 (오류 해결)
+                            if (userMgr.isUserIdExists(newUser.getId())) res = new NetworkMessage(false, "ID중복", 1);
                             else if (userMgr.addUser(newUser)) res = new NetworkMessage(true, "가입성공", 0);
                             else res = new NetworkMessage(false, "저장실패", 2);
                             break;
                         case "DELETE_USER":
-                            res = new NetworkMessage(userMgr.deleteUserById((String)req.getData()), "탈퇴", null);
+                            // ⭐⭐ [최종 수정]: deleteUser로 사용자 삭제 (오류 해결)
+                            res = new NetworkMessage(userMgr.deleteUser((String)req.getData()), "탈퇴", null);
                             break;
+
+                        // ⭐⭐ [추가]: 단일 사용자 조회 (UserModifyDialog 대응)
+                        case "USER_GET_BY_ID":
+                            User targetUser = userMgr.findUserById((String)req.getData());
+                            res = (targetUser != null) ? new NetworkMessage(true, "조회성공", targetUser) : new NetworkMessage(false, "조회실패", null);
+                            break;
+
+                        // ⭐⭐ [추가]: 관리자용 전체 사용자 조회 (UserController.getAllUsersForAdmin 대응)
+                        case "USER_GET_ALL":
+                            // readAllUsers 대신 readAll()이 맞을 수 있지만, 현재 UserController에서 사용하도록 요청했으므로 그대로 유지
+                            // ⭐ 만약 userMgr.readAllUsers()에서 오류가 난다면, userMgr.readAll()로 변경해야 함.
+                            res = new NetworkMessage(true, "전체사용자", userMgr.readAllUsers());
+                            break;
+
+                        // ⭐⭐ [추가]: 관리자용 사용자 추가 (UserController.addUserByAdmin 대응)
+                        case "USER_ADD_ADMIN":
+                            User userToAdd = (User) req.getData();
+                            if (userMgr.isUserIdExists(userToAdd.getId())) res = new NetworkMessage(false, "ID중복", 1);
+                            else if (userMgr.addUser(userToAdd)) res = new NetworkMessage(true, "추가성공", 0);
+                            else res = new NetworkMessage(false, "저장실패", 2);
+                            break;
+
+                        // ⭐⭐ [추가]: 관리자용 사용자 수정 (UserController.updateUserByAdmin 대응)
+                        case "USER_UPDATE_ADMIN":
+                            User userToUpdate = (User) req.getData();
+                            // UserDataManager의 updateUser는 boolean을 반환한다고 가정
+                            res = new NetworkMessage(userMgr.updateUser(userToUpdate), "수정성공", 0);
+                            break;
+
 
                         // ========================================================
                         // [2] 예약 관리 (ReservationController 대응)
+                        // ... (생략)
                         // ========================================================
                         case "RES_SAVE":
                             res = new NetworkMessage(resMgr.saveReservation((Map<String,Object>)req.getData()), "예약저장", null);
                             break;
-                        case "RES_SEARCH": // 이름, 전화번호로 검색
+                        case "RES_SEARCH":
                             String[] search = ((String)req.getData()).split(",");
                             res = new NetworkMessage(true, "검색", resMgr.searchReservation(search[0], search[1]));
                             break;
-                        case "RES_GET_BY_ID": // 예약 ID로 상세 조회
+                        case "RES_GET_BY_ID":
                             res = new NetworkMessage(true, "조회", resMgr.getReservationById((String)req.getData()));
                             break;
-                        case "RES_UPDATE_STATUS": // 예약 상태 변경 (CHECKED_IN 등)
+                        case "RES_UPDATE_STATUS":
                             String[] us = ((String)req.getData()).split(",");
                             res = new NetworkMessage(resMgr.updateStatus(us[0], us[1]), "상태변경", null);
                             break;
-                        case "RES_GET_BOOKED": // 예약된 방 목록 조회
+                        case "RES_GET_BOOKED":
                             String[] bd = ((String)req.getData()).split(",");
                             res = new NetworkMessage(true, "방목록", resMgr.getBookedRooms(bd[0], bd[1]));
                             break;
-                        case "RES_CHECKOUT": // ★ 체크아웃 처리 (방 번호 기준)
-                            // ReservationController.processCheckout()에서 보낸 방 번호를 받아 처리
+                        case "RES_CHECKOUT":
                             res = new NetworkMessage(resMgr.processCheckoutByRoom((String)req.getData()), "체크아웃", null);
                             break;
-                        case "RES_VALIDATE_CHECKIN": // ★ 룸서비스용 체크인 검증
+                        case "RES_VALIDATE_CHECKIN":
                             String[] vd = ((String)req.getData()).split(",");
-                            String inputCode = vd[0]; // 사용자가 입력한 코드 (6자리 등)
-                            String inputRoom = vd[1]; // 방 번호
-
-                            // 1. 방 번호로 현재 체크인 된 예약 찾기 (간이 로직)
-                            // 실제로는 ReservationDataManager에 전용 메소드를 만드는 것이 가장 정확함
-                            // 여기서는 getReservationById 대신 임시 검증 로직 사용 가능하나,
-                            // 가장 확실한 방법은 ReservationDataManager.processCheckoutByRoom 처럼
-                            // "해당 방에 체크인 된 예약이 있는지" 확인하는 것입니다.
-                            // 일단 로직 호환성을 위해 성공으로 응답하거나, 파일 검색을 수행해야 함.
-                            // (아래는 임시 성공 응답. 필요 시 ReservationDataManager에 validateCheckIn 메소드 추가 권장)
-                            res = new NetworkMessage(true, "검증성공(임시)", null);
+                            String inputCode = vd[0];
+                            String inputRoom = vd[1];
+                            res = new NetworkMessage(resMgr.validateReservationAndCheckIn(inputCode, inputRoom), "검증", null);
                             break;
 
                         // ========================================================
                         // [3] 룸서비스 관리 (RoomServiceController 대응)
+                        // ... (생략)
                         // ========================================================
                         case "RS_GET_ALL_MENU": res = new NetworkMessage(true, "메뉴", rsMgr.getAllMenu()); break;
                         case "RS_GET_CATEGORIES": res = new NetworkMessage(true, "카테고리", rsMgr.getAllCategories()); break;
@@ -140,6 +164,7 @@ public class HMSServer {
 
                         // ========================================================
                         // [4] 보고서 생성 (ReportController 대응)
+                        // ... (생략)
                         // ========================================================
                         case "REPORT_GENERATE":
                             String[] rdates = ((String) req.getData()).split(",");
@@ -180,6 +205,7 @@ public class HMSServer {
 
                         // ========================================================
                         // [5] 객실 및 가격 관리 (RoomController 대응)
+                        // ... (생략)
                         // ========================================================
                         case "ROOM_GET_ALL":
                             res = new NetworkMessage(true, "조회", roomMgr.getAllRooms());

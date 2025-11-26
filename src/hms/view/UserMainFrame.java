@@ -17,14 +17,15 @@ public class UserMainFrame extends JFrame {
 
     private final UserController userController;
     private final String userName;
-    // ReservationController 필드를 선언하고 내부에서 생성합니다.
+    // ReservationController 필드는 내부에서 생성합니다.
     private final ReservationController reservationController = new ReservationController();
 
-    // ⭐ [추가] 인증된 객실 번호를 임시로 저장할 필드
+    // [추가] 인증된 객실 번호를 임시로 저장할 필드
     private String authenticatedRoomNumber = null;
 
     /**
      * 생성자
+     * ⭐ [핵심 수정] UserController만 인수로 받도록 생성자 통일
      */
     public UserMainFrame(String userName, UserController userController) {
         this.userName = userName;
@@ -77,7 +78,7 @@ public class UserMainFrame extends JFrame {
             if (userController != null) userController.logout();
             JOptionPane.showMessageDialog(null, "로그아웃 되었습니다.");
             dispose();
-             new LoginFrame().setVisible(true);
+            new LoginFrame().setVisible(true);
         });
 
         // --- 1-2. 회원탈퇴 액션 ---
@@ -92,7 +93,7 @@ public class UserMainFrame extends JFrame {
                 if (deleteSuccess) {
                     JOptionPane.showMessageDialog(null, "회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
                     dispose();
-                     new LoginFrame().setVisible(true); // 로그인 화면으로 복귀
+                    new LoginFrame().setVisible(true); // 로그인 화면으로 복귀
                 } else {
                     JOptionPane.showMessageDialog(null, "탈퇴 중 오류가 발생했습니다. (예: 활성화된 예약이 남아있습니다)");
                 }
@@ -137,6 +138,7 @@ public class UserMainFrame extends JFrame {
         // --- 액션 리스너 연결 ---
         btnReservation.addActionListener(e -> {
             this.setVisible(false);
+            // UserController, ReservationController 모두 전달
             new ReservationFrame(this, this.reservationController, this.userController);
         });
 
@@ -145,14 +147,12 @@ public class UserMainFrame extends JFrame {
             new ReservationCheckFrame(this, this.reservationController);
         });
 
-        // ⭐⭐ [핵심 수정] 룸서비스 주문 액션: 인증 단계를 먼저 거칩니다.
+        // ⭐⭐ 룸서비스 주문 액션: 인증 단계를 먼저 거칩니다.
         btnRoomService.addActionListener(e -> {
 
-            // 1. 커스텀 UI를 위한 JTextField 생성
             JTextField idField = new JTextField(6);
             JTextField roomField = new JTextField(5);
 
-            // 2. 인증 패널 레이아웃 생성
             JPanel authPanel = new JPanel(new BorderLayout(10, 10));
             authPanel.add(new JLabel("<html><h3>객실 인증</h3>룸서비스를 이용하려면 예약 ID 6자리와 객실 번호를 입력해주세요.</html>"), BorderLayout.NORTH);
 
@@ -164,7 +164,6 @@ public class UserMainFrame extends JFrame {
 
             authPanel.add(inputPanel, BorderLayout.CENTER);
 
-            // 3. JOptionPane을 사용하여 커스텀 입력 다이얼로그 표시
             int result = JOptionPane.showConfirmDialog(this,
                     authPanel,
                     "🍽️ 룸서비스 객실 인증",
@@ -175,7 +174,6 @@ public class UserMainFrame extends JFrame {
                 String lastSixDigits = idField.getText().trim();
                 String roomNumber = roomField.getText().trim();
 
-                // 4. 입력 유효성 검사
                 if (!lastSixDigits.matches("\\d{6}") || roomNumber.isEmpty()) {
                     JOptionPane.showMessageDialog(this,
                             "인증번호는 6자리 숫자, 객실 번호는 필수 입력입니다.",
@@ -183,14 +181,12 @@ public class UserMainFrame extends JFrame {
                     return;
                 }
 
-                // 5. ReservationController를 통한 인증 호출
                 boolean isAuthenticated = reservationController.validateReservationAndCheckIn(lastSixDigits, roomNumber);
 
                 if (isAuthenticated) {
-                    // 6. ⭐ 인증 성공 시: 객실 번호를 필드에 저장
                     this.authenticatedRoomNumber = roomNumber;
 
-                    // 7. 룸서비스 주문 패널 띄우기
+                    // ⭐ RoomServiceOrderPanel이 UserMainFrame을 부모로 받도록 수정 필요
                     JDialog dialog = new JDialog(this, "🍽️ 룸서비스 주문", true);
                     JScrollPane scrollPane = new JScrollPane(new RoomServiceOrderPanel(this));
                     dialog.setContentPane(scrollPane);
@@ -198,7 +194,6 @@ public class UserMainFrame extends JFrame {
                     dialog.setLocationRelativeTo(this);
                     dialog.setVisible(true);
 
-                    // 8. ⭐ 다이얼로그가 닫힐 때 인증 정보 초기화 (안전장치)
                     this.authenticatedRoomNumber = null;
 
                 } else {
