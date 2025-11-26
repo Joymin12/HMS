@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RoomController {
+    // 🔧 문제 원인 해결: 110.46.46.92 → 127.0.0.1
     private final String SERVER_IP = "127.0.0.1";
     private final int SERVER_PORT = 5000;
 
@@ -17,9 +18,11 @@ public class RoomController {
         try (Socket s = new Socket(SERVER_IP, SERVER_PORT);
              ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(s.getInputStream())) {
+
             out.writeObject(new NetworkMessage(cmd, data));
             out.flush();
             return (NetworkMessage) in.readObject();
+
         } catch (Exception e) {
             return new NetworkMessage(false, "통신오류", null);
         }

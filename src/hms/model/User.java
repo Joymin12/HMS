@@ -27,6 +27,7 @@ public class User implements Serializable { // ⭐ implements Serializable 추�
     }
 
     // --- Getter 메서드들 ---
+    // UserDataManager 등에서 사용되는 모든 Getter가 존재합니다.
 
     public String getId() {
         return id;

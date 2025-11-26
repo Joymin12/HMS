@@ -5,7 +5,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 import java.awt.Color;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -23,8 +22,8 @@ public class SignUpFrame extends JFrame {
     private JTextField numberField;
     private JTextField ageField;
 
-    // (SignUpFrame은 자체적으로 Controller를 생성)
-    private UserController userController = new UserController();
+    // ⭐ [핵심 수정] LoginFrame에서 전달받을 UserController 필드
+    private final UserController userController;
 
     private final String ID_PLACEHOLDER = "사용할 ID (필수)";
     private final String PW_PLACEHOLDER = "비밀번호 (필수)";
@@ -34,7 +33,10 @@ public class SignUpFrame extends JFrame {
     private final String AGE_PLACEHOLDER = "20";
 
 
-    public SignUpFrame() {
+    // ⭐ [핵심 수정] UserController 객체를 인수로 받도록 생성자 수정
+    public SignUpFrame(UserController userController) {
+        this.userController = userController; // 전달받은 Controller를 필드에 저장
+
         setTitle("호텔 관리 시스템 - 회원가입");
         setSize(450, 450);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // (이 창만 닫기)
@@ -103,6 +105,7 @@ public class SignUpFrame extends JFrame {
                 String password = new String(pwField.getPassword());
                 String pwConfirm = new String(pwConfirmField.getPassword());
 
+                // 플레이스홀더 텍스트가 남아있으면 오류 처리
                 if (id.isEmpty() || id.equals(ID_PLACEHOLDER)) {
                     showError("아이디를 입력해주세요.");
                     return;
@@ -121,6 +124,7 @@ public class SignUpFrame extends JFrame {
                     return;
                 }
 
+                // 플레이스홀더가 남아있으면 빈 값/0으로 처리
                 if (number.equals(NUMBER_PLACEHOLDER)) number = "";
                 if (ageStr.equals(AGE_PLACEHOLDER)) ageStr = "0";
 

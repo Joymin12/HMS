@@ -1,7 +1,7 @@
 package hms.view;
 
 import hms.controller.UserController;
-import hms.controller.ReservationController; // ReservationController import (필드는 유지)
+// import hms.controller.ReservationController; // 사용하지 않으므로 제거 (선택 사항)
 import hms.model.User;
 import javax.swing.*;
 import java.awt.*;
@@ -19,8 +19,8 @@ public class LoginFrame extends JFrame {
 
     // (중요) LoginFrame이 '주방장' 객체를 '소유'합니다.
     private UserController userController = new UserController();
-    // ReservationController 객체 생성 및 소유 (필드는 유지)
-    private ReservationController reservationController = new ReservationController();
+    // ReservationController 객체는 여기서 사용되지 않으므로, 필드에서 제거하거나 주석 처리합니다.
+    // private ReservationController reservationController = new ReservationController(); // 사용하지 않음
 
     public LoginFrame() {
         setTitle("호텔 관리 시스템 - 로그인");
@@ -60,9 +60,11 @@ public class LoginFrame extends JFrame {
                 String id = idField.getText();
                 String password = new String(pwField.getPassword());
 
+                // ⭐ UserController의 login 메서드 호출 (이전 오류 해결됨)
                 boolean loginSuccess = userController.login(id, password);
 
                 if (loginSuccess) {
+                    // ⭐ getCurrentlyLoggedInUser 호출 (이전 오류 해결됨)
                     User loggedInUser = userController.getCurrentlyLoggedInUser();
                     String userName = loggedInUser.getName();
 
@@ -70,13 +72,14 @@ public class LoginFrame extends JFrame {
 
                     dispose(); // 로그인 창 닫기
 
-                    // ★★★ 수정 지점: 권한 확인 및 메인 프레임 분기 ★★★
+                    // ★★★ 권한 확인 및 메인 프레임 분기 (userController 인자만 전달하도록 통일) ★★★
+                    // ⭐ isCurrentUserAdmin 호출 (이전 오류 해결됨)
                     if (userController.isCurrentUserAdmin()) {
-                        // 1. 관리자 권한일 경우: AdminMainFrame은 2개의 인자만 받도록 복구
-                        new AdminMainFrame(userName, userController).setVisible(true); // 2개 인자
+                        // 1. 관리자 권한일 경우: AdminMainFrame(userName, userController)
+                        new AdminMainFrame(userName, userController).setVisible(true);
                     } else {
-                        // 2. 일반 사용자 권한일 경우: UserMainFrame도 2개의 인자만 받도록 통일 (내부에서 RC 생성)
-                        new UserMainFrame(userName, userController).setVisible(true); // 2개 인자
+                        // 2. 일반 사용자 권한일 경우: UserMainFrame(userName, userController)
+                        new UserMainFrame(userName, userController).setVisible(true);
                     }
                     // ★★★ 수정 완료 ★★★
 
@@ -93,11 +96,16 @@ public class LoginFrame extends JFrame {
         signupButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // (SignUpFrame은 자체적으로 Controller를 생성합니다)
-                new SignUpFrame();
+                // SignUpFrame은 UserController를 필요로 합니다.
+                new SignUpFrame(userController); // SignUpFrame에 userController를 넘겨주도록 수정
             }
         });
 
         setVisible(true);
+    }
+
+    // 이 클래스 실행을 위한 main 메서드 (테스트용)
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new LoginFrame());
     }
 }

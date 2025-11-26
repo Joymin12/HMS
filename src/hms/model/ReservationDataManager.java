@@ -22,6 +22,7 @@ public class ReservationDataManager {
     public static final int RES_IDX_TOTAL_PRICE = 10;
     public static final int RES_IDX_STATUS = 12;
     public static final int RES_IDX_CHECKOUT_TIME = 13;
+    public static final int RES_IDX_USER_ID = 14; // 예약 시 저장되는 User ID (기존 데이터와 길이 맞춤)
 
     public static final String STATUS_PENDING = "PENDING";
     public static final String STATUS_CHECKED_IN = "CHECKED_IN";
@@ -61,7 +62,8 @@ public class ReservationDataManager {
                 String.valueOf(data.get("totalPrice")),
                 (String) data.get("paymentMethod"),
                 STATUS_PENDING,
-                (String) data.get("userId")
+                "", // RES_IDX_CHECKOUT_TIME (예약 시에는 비워둡니다)
+                (String) data.get("userId") // RES_IDX_USER_ID
         );
 
         try (FileWriter fw = new FileWriter(RESERVATION_FILE, true);
@@ -71,6 +73,69 @@ public class ReservationDataManager {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    // (기존 메서드들: searchReservation, getReservationById, updateStatus, getBookedRooms, processCheckoutByRoom, getReservationsByPeriod는 생략)
+    // ...
+
+    // 8. ⭐ [추가됨] 예약 코드 검증 및 체크인 상태로 변경 (HMSServer 오류 해결)
+    public boolean validateReservationAndCheckIn(String reservationCode, String roomNumber) {
+        List<String> lines = new ArrayList<>();
+        boolean validatedAndCheckedIn = false;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",", -1);
+
+                // 데이터 길이가 최소한 status까지는 있는지 확인
+                if (parts.length > RES_IDX_STATUS && parts[RES_IDX_ID].equals(reservationCode)) {
+
+                    // 1. 예약 코드가 일치하는지 확인
+                    // 2. 객실 번호가 일치하는지 확인
+                    // 3. 현재 상태가 PENDING인지 확인
+                    if (parts[RES_IDX_ROOM_NUM].equals(roomNumber) && parts[RES_IDX_STATUS].equals(STATUS_PENDING)) {
+
+                        // 상태를 CHECKED_IN으로 변경
+                        parts[RES_IDX_STATUS] = STATUS_CHECKED_IN;
+
+                        // 체크아웃 시간 필드가 없는 경우 배열 확장 (안전성 확보)
+                        if (parts.length <= RES_IDX_CHECKOUT_TIME) {
+                            String[] newParts = new String[RES_IDX_USER_ID + 1];
+                            System.arraycopy(parts, 0, newParts, 0, parts.length);
+                            for (int i = parts.length; i < newParts.length; i++) newParts[i] = "";
+                            parts = newParts;
+                        }
+
+                        // 현재 라인을 수정된 상태로 리스트에 추가
+                        lines.add(String.join(",", parts));
+                        validatedAndCheckedIn = true;
+
+                    } else {
+                        // 조건 불일치 (방 번호 불일치, 이미 체크인 상태 등)
+                        lines.add(line);
+                    }
+                } else {
+                    // ID 불일치
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        // 파일 덮어쓰기
+        if (validatedAndCheckedIn) {
+            try (PrintWriter pw = new PrintWriter(new FileWriter(RESERVATION_FILE))) {
+                for (String l : lines) pw.println(l);
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return false;
     }
 
     // 2. 예약 검색
@@ -116,7 +181,7 @@ public class ReservationDataManager {
                 if (parts.length > RES_IDX_STATUS && parts[RES_IDX_ID].equals(id)) {
                     // 기존 데이터 길이가 짧으면 확장 (체크아웃 시간 필드 확보)
                     if (parts.length <= RES_IDX_CHECKOUT_TIME) {
-                        String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];
+                        String[] newParts = new String[RES_IDX_USER_ID + 1];
                         System.arraycopy(parts, 0, newParts, 0, parts.length);
                         // 빈 공간 채우기
                         for(int i=parts.length; i<newParts.length; i++) newParts[i] = "";
@@ -170,7 +235,7 @@ public class ReservationDataManager {
         return booked;
     }
 
-    // 6. 체크아웃 처리 (방 번호로) - ★ 이 메소드가 추가되었습니다!
+    // 6. 체크아웃 처리 (방 번호로)
     public boolean processCheckoutByRoom(String roomNumber) {
         String targetId = null;
         try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
