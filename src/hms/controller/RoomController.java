@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class RoomController {
-    private final String SERVER_IP = "110.46.46.92";
+    private final String SERVER_IP = "127.0.0.1";
     private final int SERVER_PORT = 5000;
 
     // 공통 전송 메소드
