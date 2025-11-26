@@ -12,7 +12,8 @@ public class UserController {
     private String serverIp = "127.0.0.1";
     private int serverPort = 5000;
 
-    // 클라이언트에서 DataManager를 직접 소유/사용하지 않습니다.
+    // ⭐ [수정] 클라이언트에서 DataManager를 직접 소유/사용하지 않습니다. (제거)
+    // private final UserDataManager userDataManager = new UserDataManager();
 
     private NetworkMessage sendRequest(String command, Object data) {
         try (Socket socket = new Socket(serverIp, serverPort);
@@ -29,7 +30,7 @@ public class UserController {
         }
     }
 
-    // LoginFrame 사용 메서드 1
+    // ⭐ LoginFrame 사용 메서드 1
     public boolean login(String id, String password) {
         NetworkMessage res = sendRequest("LOGIN", id + "," + password);
         if (res.isSuccess()) {
@@ -39,12 +40,12 @@ public class UserController {
         return false;
     }
 
-    // LoginFrame 사용 메서드 2
+    // ⭐ LoginFrame 사용 메서드 2
     public User getCurrentlyLoggedInUser() {
         return currentlyLoggedInUser;
     }
 
-    // LoginFrame 사용 메서드 3
+    // ⭐ LoginFrame 사용 메서드 3
     public boolean isCurrentUserAdmin() {
         return currentlyLoggedInUser != null && "admin".equals(currentlyLoggedInUser.getRole());
     }
@@ -53,16 +54,7 @@ public class UserController {
         this.currentlyLoggedInUser = null;
     }
 
-    // ⭐ [추가] UserModifyDialog에서 사용자 정보를 가져오기 위한 메서드
-    public User getUserById(String id) {
-        NetworkMessage res = sendRequest("USER_GET_BY_ID", id);
-        if (res.isSuccess() && res.getData() instanceof User) {
-            return (User) res.getData();
-        }
-        return null;
-    }
-
-    // 관리자용 전체 사용자 조회 (서버 통신)
+    // ⭐ [수정] 관리자용 전체 사용자 조회 (서버 통신)
     public List<User> getAllUsersForAdmin() {
         NetworkMessage res = sendRequest("USER_GET_ALL", null);
         if (res.isSuccess() && res.getData() instanceof List) {
@@ -71,7 +63,7 @@ public class UserController {
         return null; // 통신 실패 또는 데이터 형식 오류
     }
 
-    // 관리자용 사용자 추가 (서버 통신)
+    // ⭐ [수정] 관리자용 사용자 추가 (서버 통신)
     public int addUserByAdmin(String id, String pw, String name, String number, String ageStr, String role) {
         int age;
         try {
@@ -90,13 +82,13 @@ public class UserController {
         return 2; // 통신/처리 오류
     }
 
-    // 관리자용 사용자 삭제 (서버 통신)
+    // ⭐ [수정] 관리자용 사용자 삭제 (서버 통신)
     public boolean deleteUserByAdmin(String id) {
         NetworkMessage res = sendRequest("DELETE_USER", id);
         return res.isSuccess(); // 서버에서 삭제 성공 여부를 반환
     }
 
-    // 관리자용 사용자 수정 (서버 통신)
+    // ⭐ [수정] 관리자용 사용자 수정 (서버 통신)
     public int updateUserByAdmin(String id, String pw, String name, String number, String ageStr, String role) {
         int age;
         try {
@@ -114,7 +106,7 @@ public class UserController {
         return 2;
     }
 
-    // 회원가입 (서버 통신)
+    // ⭐ 회원가입 (서버 통신)
     public int signUp(String id, String pw, String name, String number, String ageStr) {
         try {
             int age = Integer.parseInt(ageStr);
@@ -133,7 +125,7 @@ public class UserController {
         }
     }
 
-    // 계정 탈퇴 (서버 통신)
+    // ⭐ 계정 탈퇴 (서버 통신)
     public boolean deleteAccount() {
         if (currentlyLoggedInUser == null) return false;
         NetworkMessage res = sendRequest("DELETE_USER", currentlyLoggedInUser.getId());
