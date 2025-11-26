@@ -42,7 +42,7 @@ public class UserController {
     public int signUp(String id, String pw, String name, String number, String ageStr) {
         try {
             int age = Integer.parseInt(ageStr);
-            // User 생성자에 7개 인자 전달 (role="user", email="")
+            // User 생성자에 6개 인자 전달 (role="user")
             User newUser = new User(id, pw, name, number, age, "user");
             NetworkMessage res = sendRequest("SIGNUP", newUser);
             if (res.isSuccess()) return 0;
@@ -70,10 +70,11 @@ public class UserController {
     }
 
 
-    // 4. [기존 기능] 전체 사용자 목록 조회 (SFR-205)
+    // 4. [수정됨] 전체 사용자 목록 조회 (HMSServer의 "USER_GET_ALL" 명령에 맞춤)
     public List<User> getAllUsers() {
         try {
-            NetworkMessage response = sendRequest("GET_ALL_USERS", null);
+            // ⭐⭐⭐ 명령어를 서버의 HMSServer.java에 맞게 "USER_GET_ALL"로 수정 ⭐⭐⭐
+            NetworkMessage response = sendRequest("USER_GET_ALL", null);
 
             if (response.isSuccess()) {
                 // 응답 데이터는 사용자 목록(List<User>)
@@ -90,7 +91,8 @@ public class UserController {
     // ⭐ 4-1. [추가 기능] ID로 사용자 정보 조회 (EditUserDialog 지원) ⭐
     public User getUserById(String userId) {
         try {
-            NetworkMessage response = sendRequest("GET_USER_BY_ID", userId);
+            // ⭐ HMSServer의 USER_GET_BY_ID 명령에 맞춤
+            NetworkMessage response = sendRequest("USER_GET_BY_ID", userId);
 
             if (response.isSuccess()) {
                 // 서버에서 User 객체를 성공적으로 반환했을 경우
@@ -106,7 +108,8 @@ public class UserController {
     // 5. [기존 기능] 관리자 권한으로 사용자 삭제 (SFR-207)
     public boolean deleteUserByAdmin(String userId) {
         try {
-            NetworkMessage response = sendRequest("ADMIN_DELETE_USER", userId);
+            // ⭐ HMSServer의 ADMIN_DELETE_USER 명령에 맞춤
+            NetworkMessage response = sendRequest("DELETE_USER", userId);
             return response.isSuccess();
 
         } catch (Exception e) {
@@ -118,7 +121,8 @@ public class UserController {
     // ⭐ 6. [추가 기능] 관리자 권한으로 사용자 정보 수정 (EditUserDialog 지원) ⭐
     public boolean updateUserByAdmin(User updatedUser) {
         try {
-            NetworkMessage response = sendRequest("ADMIN_UPDATE_USER", updatedUser);
+            // ⭐ HMSServer의 USER_UPDATE_ADMIN 명령에 맞춤
+            NetworkMessage response = sendRequest("USER_UPDATE_ADMIN", updatedUser);
             return response.isSuccess();
 
         } catch (Exception e) {

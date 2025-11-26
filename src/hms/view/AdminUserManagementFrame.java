@@ -128,7 +128,11 @@ public class AdminUserManagementFrame extends JFrame {
     public void loadUserData() {
         tableModel.setRowCount(0);
 
-        List<User> userList = userController.getAllUsersForAdmin();
+        // ------------------------------------------------------------------
+        // ⭐ 수정 부분: getAllUsersForAdmin() -> getAllUsers() ⭐
+        // UserController에 정의된 올바른 메서드 이름으로 변경합니다.
+        List<User> userList = userController.getAllUsers();
+        // ------------------------------------------------------------------
 
         if (userList != null) {
             for (User user : userList) {
@@ -200,4 +204,3 @@ public class AdminUserManagementFrame extends JFrame {
         dispose();
     }
 }
-

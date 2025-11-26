@@ -100,7 +100,7 @@ public class UserModifyDialog extends JDialog {
         return panel;
     }
 
-    // ⭐ 핵심 로직: 서버에서 기존 사용자 정보를 불러와 폼에 채우기
+    // 서버에서 기존 사용자 정보를 불러와 폼에 채우기
     private void loadUserDataToForm() {
         // UserController의 getUserById를 사용하여 서버에서 사용자 정보를 가져옴
         User user = userController.getUserById(userIdToModify);
@@ -109,9 +109,11 @@ public class UserModifyDialog extends JDialog {
             // ID는 이미 생성자에서 설정됨
             nameField.setText(user.getName());
             numberField.setText(user.getPhoneNumber());
+            // age는 int형이므로 String으로 변환하여 필드에 설정
             ageField.setText(String.valueOf(user.getAge()));
             roleComboBox.setSelectedItem(user.getRole());
-            pwField.setText(user.getPassword()); // 기존 비밀번호를 표시 (보안상 좋지 않으나, 편의상)
+            // 보안상 기존 비밀번호를 표시하는 것은 권장되지 않으나, 편의상 불러온 정보를 필드에 설정
+            pwField.setText(user.getPassword());
         } else {
             JOptionPane.showMessageDialog(this, "수정할 사용자 정보를 불러오는 데 실패했습니다. (ID 오류 또는 통신 오류)", "오류", JOptionPane.ERROR_MESSAGE);
             dispose();
@@ -120,7 +122,7 @@ public class UserModifyDialog extends JDialog {
 
     private void handleModify(ActionEvent e) {
         String id = idField.getText().trim();
-        // 비밀번호가 비어있으면 기존 비밀번호를 사용
+        // pwField에 입력된 값 (새 비밀번호이거나, 불러온 기존 비밀번호)을 사용
         String newPw = new String(pwField.getPassword()).trim();
         String name = nameField.getText().trim();
         String number = numberField.getText().trim();
@@ -133,7 +135,7 @@ public class UserModifyDialog extends JDialog {
             return;
         }
 
-        // 2. 나이 및 연락처 형식 검증 (간단하게)
+        // 2. 나이 및 연락처 형식 검증
         if (!Pattern.matches("^\\d+$", ageStr)) {
             JOptionPane.showMessageDialog(this, "나이는 숫자만 입력 가능합니다.", "경고", JOptionPane.WARNING_MESSAGE);
             return;
@@ -143,17 +145,31 @@ public class UserModifyDialog extends JDialog {
             return;
         }
 
-        // 3. UserController를 통해 서버에 수정 요청
-        int result = userController.updateUserByAdmin(id, newPw, name, number, ageStr, role);
+        int age;
+        try {
+            age = Integer.parseInt(ageStr);
+        } catch (NumberFormatException ex) {
+            // Pattern.matches 때문에 발생할 가능성은 낮지만, 혹시 모를 상황 대비
+            JOptionPane.showMessageDialog(this, "나이 형식이 올바르지 않습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        if (result == 0) {
+        // ⭐ 3. User 객체 생성 및 인자 1개로 Controller 호출 ⭐
+        // User 클래스 생성자 가정: User(id, pw, name, phoneNumber, age, role)
+        // 실제 User 클래스의 생성자 형태에 따라 인자 수를 조정해야 합니다.
+        // 현재 뷰에서 얻은 6개의 인자를 사용하여 User 객체를 생성합니다.
+        User updatedUser = new User(id, newPw, name, number, age, role);
+
+        // UserController의 updateUserByAdmin(User updatedUser)를 호출하고 boolean 결과를 받습니다.
+        boolean success = userController.updateUserByAdmin(updatedUser);
+
+        if (success) {
             JOptionPane.showMessageDialog(this, "사용자 [" + id + "] 정보가 성공적으로 수정되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
             parentFrame.loadUserData(); // 부모 프레임의 테이블 데이터 새로고침
             dispose();
-        } else if (result == 1) {
-            JOptionPane.showMessageDialog(this, "나이 형식이 올바르지 않습니다.", "오류", JOptionPane.ERROR_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(this, "사용자 정보 수정 중 오류가 발생했습니다. (서버 처리 오류)", "오류", JOptionPane.ERROR_MESSAGE);
+            // 통신 오류, 서버 처리 오류 등 기타 모든 실패 케이스
+            JOptionPane.showMessageDialog(this, "사용자 정보 수정 중 오류가 발생했습니다. (서버 통신 또는 처리 오류)", "오류", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
