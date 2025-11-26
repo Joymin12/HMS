@@ -1,0 +1,538 @@
+Index: src/hms/model/ReservationDataManager.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// 파일 경로: hms/model/ReservationDataManager.java (최종 수정)\r\npackage hms.model;\r\n\r\nimport java.io.*;\r\nimport java.time.LocalDate;\r\nimport java.time.temporal.ChronoUnit;\r\nimport java.text.SimpleDateFormat;\r\nimport java.util.ArrayList;\r\nimport java.util.Date;\r\nimport java.util.List;\r\nimport java.util.Map;\r\n\r\npublic class ReservationDataManager {\r\n\r\n    private static final String RESERVATION_FILE = \"data/reservation_info.txt\";\r\n    // 인덱스 상수\r\n    public static final int RES_IDX_ID = 0;\r\n    public static final int RES_IDX_NAME = 1;\r\n    public static final int RES_IDX_PHONE = 2;\r\n    public static final int RES_IDX_CHECK_IN_DATE = 3;\r\n    public static final int RES_IDX_CHECKOUT_DATE = 4;\r\n    public static final int RES_IDX_ROOM_NUM = 9;\r\n    public static final int RES_IDX_TOTAL_PRICE = 10;\r\n    public static final int RES_IDX_PAYMENT = 11;\r\n    public static final int RES_IDX_STATUS = 12;\r\n    public static final int RES_IDX_CHECKOUT_TIME = 13;\r\n\r\n    public static final String STATUS_PENDING = \"PENDING\";\r\n    public static final String STATUS_CHECKED_IN = \"CHECKED_IN\";\r\n    public static final String STATUS_CHECKED_OUT = \"CHECKED_OUT\";\r\n\r\n    public ReservationDataManager() {\r\n        // 데이터 폴더 확인 및 생성\r\n        File file = new File(RESERVATION_FILE);\r\n        if (!file.exists()) {\r\n            if (file.getParentFile() != null) {\r\n                file.getParentFile().mkdirs();\r\n            }\r\n        }\r\n    }\r\n\r\n    // 1. 예약 저장 (Save Reservation)\r\n    public boolean saveReservation(Map<String, Object> data) {\r\n        String datePart = new SimpleDateFormat(\"yyMMdd\").format(new Date());\r\n        int randomPart = (int)(Math.random() * 900000) + 100000;\r\n        String confirmationId = datePart + \"-\" + randomPart;\r\n\r\n        String line = String.join(\",\",\r\n                confirmationId,\r\n                (String) data.get(\"customerName\"),\r\n                (String) data.get(\"phoneNumber\"),\r\n                (String) data.get(\"checkIn\"),\r\n                (String) data.get(\"checkOut\"),\r\n                (String) data.get(\"estimatedInTime\"),\r\n                (String) data.get(\"estimatedOutTime\"),\r\n                String.valueOf(data.get(\"guests\")),\r\n                (String) data.get(\"grade\"),\r\n                (String) data.get(\"room\"),\r\n                String.valueOf(data.get(\"totalPrice\")),\r\n                (String) data.get(\"paymentMethod\"),\r\n                STATUS_PENDING,\r\n                (String) data.get(\"userId\") // 14번째 필드 (예약자 ID)\r\n        );\r\n\r\n        try (FileWriter fw = new FileWriter(RESERVATION_FILE, true);\r\n             PrintWriter pw = new PrintWriter(fw)) {\r\n            pw.println(line);\r\n            return true;\r\n        } catch (IOException e) {\r\n            e.printStackTrace();\r\n            return false;\r\n        }\r\n    }\r\n\r\n    // 2. 예약 검색 (Search Reservation)\r\n    public String[] searchReservation(String name, String phoneNumber) {\r\n        // ... (기존 로직 유지) ...\r\n        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {\r\n            String line;\r\n            while ((line = br.readLine()) != null) {\r\n                String[] parts = line.split(\",\", -1);\r\n                // 최소 필드 길이 확인\r\n                if (parts.length < 3) continue;\r\n                // 이름(Index 1)과 전화번호(Index 2)로 검색\r\n                if (parts[RES_IDX_NAME].trim().equals(name) && parts[RES_IDX_PHONE].trim().equals(phoneNumber)) {\r\n                    // ⭐ [수정] 14개 필드 기준에 맞게 배열을 확장하여 반환 (Client/Server 통신 시 인덱스 오류 방지)\r\n                    if (parts.length < RES_IDX_CHECKOUT_TIME + 1) {\r\n                        String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];\r\n                        System.arraycopy(parts, 0, newParts, 0, parts.length);\r\n                        // 누락된 상태 필드 채우기\r\n                        if (parts.length <= RES_IDX_STATUS) newParts[RES_IDX_STATUS] = STATUS_PENDING;\r\n                        if (parts.length <= RES_IDX_CHECKOUT_TIME) newParts[RES_IDX_CHECKOUT_TIME] = \"\";\r\n                        return newParts;\r\n                    }\r\n                    return parts;\r\n                }\r\n            }\r\n        } catch (IOException e) { e.printStackTrace(); }\r\n        return null;\r\n    }\r\n\r\n    // 3. ID로 조회 (Get Reservation by ID)\r\n    public String[] getReservationById(String id) {\r\n        // ... (기존 로직 유지, 배열 확장 로직 추가) ...\r\n        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {\r\n            String line;\r\n            while ((line = br.readLine()) != null) {\r\n                String[] parts = line.split(\",\", -1);\r\n                if (parts.length > 0 && parts[RES_IDX_ID].trim().equals(id)) {\r\n                    if (parts.length < RES_IDX_CHECKOUT_TIME + 1) {\r\n                        String[] newParts = new String[RES_IDX_CHECKOUT_TIME + 1];\r\n                        System.arraycopy(parts, 0, newParts, 0, parts.length);\r\n                        if (parts.length <= RES_IDX_STATUS) newParts[RES_IDX_STATUS] = STATUS_PENDING;\r\n                        if (parts.length <= RES_IDX_CHECKOUT_TIME) newParts[RES_IDX_CHECKOUT_TIME] = \"\";\r\n                        return newParts;\r\n                    }\r\n                    return parts;\r\n                }\r\n            }\r\n        } catch (IOException e) { e.printStackTrace(); }\r\n        return null;\r\n    }\r\n\r\n    // 4. 상태 업데이트 (Update Status)\r\n    public boolean updateStatus(String id, String newStatus) {\r\n        List<String> lines = new ArrayList<>();\r\n        boolean updated = false;\r\n        String checkoutTime = newStatus.equals(STATUS_CHECKED_OUT)\r\n                ? new SimpleDateFormat(\"yyyy-MM-dd HH:mm:ss\").format(new Date()) : \"\";\r\n\r\n        // ... (기존 로직 유지) ...\r\n        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {\r\n            String line;\r\n            while ((line = br.readLine()) != null) {\r\n                String[] parts = line.split(\",\", -1);\r\n                if (parts.length > RES_IDX_STATUS && parts[RES_IDX_ID].equals(id)) {\r\n\r\n                    String[] currentParts = parts;\r\n                    // ⭐ 배열 확장 로직 (데이터 무결성 확보)\r\n                    if (currentParts.length <= RES_IDX_CHECKOUT_TIME) {\r\n                        currentParts = new String[RES_IDX_CHECKOUT_TIME + 1];\r\n                        System.arraycopy(parts, 0, currentParts, 0, parts.length);\r\n                        for(int i = parts.length; i <= RES_IDX_CHECKOUT_TIME; i++) {\r\n                            currentParts[i] = \"\";\r\n                        }\r\n                    }\r\n\r\n                    currentParts[RES_IDX_STATUS] = newStatus;\r\n                    if (newStatus.equals(STATUS_CHECKED_OUT)) {\r\n                        currentParts[RES_IDX_CHECKOUT_TIME] = checkoutTime;\r\n                    }\r\n                    lines.add(String.join(\",\", currentParts));\r\n                    updated = true;\r\n                } else {\r\n                    lines.add(line);\r\n                }\r\n            }\r\n        } catch (IOException e) { return false; }\r\n\r\n        if (updated) {\r\n            try (PrintWriter pw = new PrintWriter(new FileWriter(RESERVATION_FILE))) {\r\n                for (String l : lines) pw.println(l);\r\n                return true;\r\n            } catch (IOException e) { return false; }\r\n        }\r\n        return false;\r\n    }\r\n\r\n    // 5. 예약된 방 목록\r\n    public List<String> getBookedRooms(String inStr, String outStr) {\r\n\r\n        List<String> booked = new ArrayList<>();\r\n\r\n        // ⭐ [수정 1] 메서드 시작 시점에 한 번만 날짜 객체로 파싱합니다.\r\n        LocalDate checkIn = LocalDate.parse(inStr);\r\n        LocalDate checkOut = LocalDate.parse(outStr);\r\n\r\n        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {\r\n            String line;\r\n            while ((line = br.readLine()) != null) {\r\n                String[] parts = line.split(\",\", -1);\r\n                if (parts.length < 12) continue;\r\n\r\n                try {\r\n                    LocalDate rIn = LocalDate.parse(parts[RES_IDX_CHECK_IN_DATE]);\r\n                    LocalDate rOut = LocalDate.parse(parts[RES_IDX_CHECKOUT_DATE]);\r\n\r\n                    // ⭐ [수정 2] 중복된 파싱 로직을 제거하고, 이미 선언된 checkIn/checkOut 객체를 사용합니다.\r\n                    if (checkIn.isBefore(rOut) && checkOut.isAfter(rIn)) {\r\n                        booked.add(parts[RES_IDX_ROOM_NUM]); // 방 번호\r\n                    }\r\n                } catch (Exception e) {\r\n                    // 데이터 파싱 오류가 발생한 라인은 건너뜁니다.\r\n                    continue;\r\n                }\r\n            }\r\n        } catch (IOException e) {\r\n            e.printStackTrace();\r\n        }\r\n        return booked;\r\n    }\r\n\r\n    // 6. 예약 데이터 삭제 (SFR-207 지원)\r\n    /**\r\n     * 특정 고객의 예약 정보를 삭제합니다. (UserController에서 호출됨)\r\n     * @param name 삭제할 고객 이름\r\n     * @param phoneNumber 삭제할 고객 전화번호\r\n     * @return 삭제 성공 여부\r\n     */\r\n    public boolean deleteReservationsByCustomer(String name, String phoneNumber) {\r\n        List<String> allLines = new ArrayList<>();\r\n        boolean deleted = false;\r\n\r\n        try (BufferedReader reader = new BufferedReader(new FileReader(RESERVATION_FILE))) {\r\n            String line;\r\n            while ((line = reader.readLine()) != null) {\r\n                String[] parts = line.split(\",\", -1);\r\n\r\n                if (parts.length > RES_IDX_PHONE &&\r\n                        parts[RES_IDX_NAME].trim().equals(name) &&\r\n                        parts[RES_IDX_PHONE].trim().equals(phoneNumber)) {\r\n\r\n                    deleted = true;\r\n                    continue; // 삭제 대상이므로 건너뜁니다.\r\n                }\r\n                allLines.add(line);\r\n            }\r\n        } catch (IOException e) {\r\n            return false;\r\n        }\r\n\r\n        if (deleted) {\r\n            try (PrintWriter pw = new PrintWriter(new FileWriter(RESERVATION_FILE))) {\r\n                for (String newLine : allLines) {\r\n                    pw.println(newLine);\r\n                }\r\n                return true;\r\n            } catch (IOException e) {\r\n                return false;\r\n            }\r\n        }\r\n        return true; // 삭제할 대상이 없었거나, 삭제에 성공했거나\r\n    }\r\n\r\n    // 7. 체크아웃 최종 처리 로직 (SFR-315)\r\n    /**\r\n     * 특정 객실 번호에 대해 CHECKED_IN 상태의 예약을 찾아 CHECKED_OUT으로 변경합니다.\r\n     * @param roomNumber 체크아웃할 객실 번호\r\n     * @return 상태 변경 성공 여부\r\n     */\r\n    public boolean processCheckoutByRoom(String roomNumber) {\r\n        String reservationIdToCheckout = null;\r\n\r\n        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {\r\n            String line;\r\n            while ((line = br.readLine()) != null) {\r\n                String[] parts = line.split(\",\", -1);\r\n\r\n                if (parts.length > RES_IDX_STATUS) {\r\n                    String currentRoom = parts[RES_IDX_ROOM_NUM].trim();\r\n                    String currentStatus = parts[RES_IDX_STATUS].trim();\r\n\r\n                    if (currentRoom.equals(roomNumber) && currentStatus.equals(STATUS_CHECKED_IN)) {\r\n                        reservationIdToCheckout = parts[RES_IDX_ID];\r\n                        break;\r\n                    }\r\n                }\r\n            }\r\n        } catch (IOException e) {\r\n            System.err.println(\"체크아웃 대상 예약 검색 중 오류: \" + e.getMessage());\r\n            return false;\r\n        }\r\n\r\n        if (reservationIdToCheckout != null) {\r\n            // updateStatus 메서드를 호출하여 상태를 변경합니다.\r\n            return updateStatus(reservationIdToCheckout, STATUS_CHECKED_OUT);\r\n        }\r\n\r\n        System.out.println(\"DEBUG: 객실 \" + roomNumber + \"에 대한 체크인 상태의 예약을 찾을 수 없습니다.\");\r\n        return false;\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/hms/model/ReservationDataManager.java b/src/hms/model/ReservationDataManager.java
+--- a/src/hms/model/ReservationDataManager.java	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/src/hms/model/ReservationDataManager.java	(date 1764067242516)
+@@ -24,7 +24,7 @@
+     public static final int RES_IDX_PAYMENT = 11;
+     public static final int RES_IDX_STATUS = 12;
+     public static final int RES_IDX_CHECKOUT_TIME = 13;
+-
++    public static final int RES_IDX_LATE_FEE = 14; // ⭐ [추가] 지연 요금 저장 인덱스
+     public static final String STATUS_PENDING = "PENDING";
+     public static final String STATUS_CHECKED_IN = "CHECKED_IN";
+     public static final String STATUS_CHECKED_OUT = "CHECKED_OUT";
+@@ -42,7 +42,7 @@
+     // 1. 예약 저장 (Save Reservation)
+     public boolean saveReservation(Map<String, Object> data) {
+         String datePart = new SimpleDateFormat("yyMMdd").format(new Date());
+-        int randomPart = (int)(Math.random() * 900000) + 100000;
++        int randomPart = (int) (Math.random() * 900000) + 100000;
+         String confirmationId = datePart + "-" + randomPart;
+ 
+         String line = String.join(",",
+@@ -95,7 +95,9 @@
+                     return parts;
+                 }
+             }
+-        } catch (IOException e) { e.printStackTrace(); }
++        } catch (IOException e) {
++            e.printStackTrace();
++        }
+         return null;
+     }
+ 
+@@ -117,7 +119,9 @@
+                     return parts;
+                 }
+             }
+-        } catch (IOException e) { e.printStackTrace(); }
++        } catch (IOException e) {
++            e.printStackTrace();
++        }
+         return null;
+     }
+ 
+@@ -140,7 +144,7 @@
+                     if (currentParts.length <= RES_IDX_CHECKOUT_TIME) {
+                         currentParts = new String[RES_IDX_CHECKOUT_TIME + 1];
+                         System.arraycopy(parts, 0, currentParts, 0, parts.length);
+-                        for(int i = parts.length; i <= RES_IDX_CHECKOUT_TIME; i++) {
++                        for (int i = parts.length; i <= RES_IDX_CHECKOUT_TIME; i++) {
+                             currentParts[i] = "";
+                         }
+                     }
+@@ -155,13 +159,17 @@
+                     lines.add(line);
+                 }
+             }
+-        } catch (IOException e) { return false; }
++        } catch (IOException e) {
++            return false;
++        }
+ 
+         if (updated) {
+             try (PrintWriter pw = new PrintWriter(new FileWriter(RESERVATION_FILE))) {
+                 for (String l : lines) pw.println(l);
+                 return true;
+-            } catch (IOException e) { return false; }
++            } catch (IOException e) {
++                return false;
++            }
+         }
+         return false;
+     }
+@@ -201,9 +209,11 @@
+     }
+ 
+     // 6. 예약 데이터 삭제 (SFR-207 지원)
++
+     /**
+      * 특정 고객의 예약 정보를 삭제합니다. (UserController에서 호출됨)
+-     * @param name 삭제할 고객 이름
++     *
++     * @param name        삭제할 고객 이름
+      * @param phoneNumber 삭제할 고객 전화번호
+      * @return 삭제 성공 여부
+      */
+@@ -243,40 +253,59 @@
+     }
+ 
+     // 7. 체크아웃 최종 처리 로직 (SFR-315)
++
+     /**
+      * 특정 객실 번호에 대해 CHECKED_IN 상태의 예약을 찾아 CHECKED_OUT으로 변경합니다.
++     *
+      * @param roomNumber 체크아웃할 객실 번호
+      * @return 상태 변경 성공 여부
+      */
+-    public boolean processCheckoutByRoom(String roomNumber) {
+-        String reservationIdToCheckout = null;
++    public boolean processCheckoutByRoom(String roomNumber, long lateFee) {
++        List<String> lines = new ArrayList<>();
++        boolean updated = false;
++        String checkoutTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+ 
+         try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
+             String line;
+             while ((line = br.readLine()) != null) {
+                 String[] parts = line.split(",", -1);
+ 
++                // 해당 객실의 CHECKED_IN 상태 예약 찾기
+                 if (parts.length > RES_IDX_STATUS) {
+                     String currentRoom = parts[RES_IDX_ROOM_NUM].trim();
+                     String currentStatus = parts[RES_IDX_STATUS].trim();
+ 
+                     if (currentRoom.equals(roomNumber) && currentStatus.equals(STATUS_CHECKED_IN)) {
+-                        reservationIdToCheckout = parts[RES_IDX_ID];
+-                        break;
++                        // 배열 확장 (지연 요금 필드 공간 확보)
++                        if (parts.length <= RES_IDX_LATE_FEE) {
++                            String[] newParts = new String[RES_IDX_LATE_FEE + 1];
++                            System.arraycopy(parts, 0, newParts, 0, parts.length);
++                            for (int i = parts.length; i < newParts.length; i++) newParts[i] = "";
++                            parts = newParts;
++                        }
++
++                        // 데이터 업데이트
++                        parts[RES_IDX_STATUS] = STATUS_CHECKED_OUT;
++                        parts[RES_IDX_CHECKOUT_TIME] = checkoutTime;
++                        parts[RES_IDX_LATE_FEE] = String.valueOf(lateFee); // ⭐ 지연 요금 저장
++
++                        updated = true;
+                     }
+                 }
++                lines.add(String.join(",", parts));
+             }
+         } catch (IOException e) {
+-            System.err.println("체크아웃 대상 예약 검색 중 오류: " + e.getMessage());
+             return false;
+         }
+ 
+-        if (reservationIdToCheckout != null) {
+-            // updateStatus 메서드를 호출하여 상태를 변경합니다.
+-            return updateStatus(reservationIdToCheckout, STATUS_CHECKED_OUT);
++        if (updated) {
++            try (PrintWriter pw = new PrintWriter(new FileWriter(RESERVATION_FILE))) {
++                for (String l : lines) pw.println(l);
++                return true;
++            } catch (IOException e) {
++                return false;
++            }
+         }
+-
+-        System.out.println("DEBUG: 객실 " + roomNumber + "에 대한 체크인 상태의 예약을 찾을 수 없습니다.");
+         return false;
+     }
+ }
+\ No newline at end of file
+Index: src/hms/controller/ReservationController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package hms.controller;\r\n\r\nimport hms.network.NetworkMessage;\r\nimport java.io.*;\r\nimport java.net.Socket;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\nimport java.util.Map;\r\n\r\npublic class ReservationController {\r\n\r\n    // 상수 (View에서 쓰임)\r\n    public static final int RES_IDX_ID = 0;\r\n    public static final int RES_IDX_ROOM_NUM = 9;\r\n    public static final int RES_IDX_TOTAL_PRICE = 10;\r\n    public static final int RES_IDX_STATUS = 12;\r\n    public static final int RES_IDX_CHECKOUT_TIME = 13;\r\n\r\n    public static final String STATUS_PENDING = \"PENDING\";\r\n    public static final String STATUS_CHECKED_IN = \"CHECKED_IN\";\r\n    public static final String STATUS_CHECKED_OUT = \"CHECKED_OUT\";\r\n\r\n    private String serverIp = \"127.0.0.1\";\r\n    private int serverPort = 5000;\r\n\r\n    private NetworkMessage sendRequest(String command, Object data) {\r\n        try (Socket socket = new Socket(serverIp, serverPort);\r\n             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());\r\n             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {\r\n\r\n            out.writeObject(new NetworkMessage(command, data));\r\n            out.flush();\r\n            return (NetworkMessage) in.readObject();\r\n\r\n        } catch (Exception e) {\r\n            System.err.println(\"네트워크 오류: \" + e.getMessage());\r\n            return new NetworkMessage(false, \"통신 오류\", null);\r\n        }\r\n    }\r\n\r\n    public boolean saveReservationToFile(Map<String, Object> data) {\r\n        return sendRequest(\"RES_SAVE\", data).isSuccess();\r\n    }\r\n\r\n    public String[] searchReservation(String name, String phoneNumber) {\r\n        NetworkMessage res = sendRequest(\"RES_SEARCH\", name + \",\" + phoneNumber);\r\n        if (res.isSuccess() && res.getData() instanceof String[]) {\r\n            return (String[]) res.getData();\r\n        }\r\n        return null;\r\n    }\r\n\r\n    public String[] getReservationDetailsById(String reservationId) {\r\n        NetworkMessage res = sendRequest(\"RES_GET_BY_ID\", reservationId);\r\n        if (res.isSuccess()) return (String[]) res.getData();\r\n        return null;\r\n    }\r\n\r\n    public boolean updateReservationStatus(String reservationId, String newStatus) {\r\n        return sendRequest(\"RES_UPDATE_STATUS\", reservationId + \",\" + newStatus).isSuccess();\r\n    }\r\n\r\n    public List<String> getBookedRooms(String checkInStr, String checkOutStr) {\r\n        NetworkMessage res = sendRequest(\"RES_GET_BOOKED\", checkInStr + \",\" + checkOutStr);\r\n        if (res.isSuccess()) return (List<String>) res.getData();\r\n        return new ArrayList<>();\r\n    }\r\n\r\n    public long getRoomCharge(String[] reservationData) {\r\n        if (reservationData.length > RES_IDX_TOTAL_PRICE) {\r\n            try {\r\n                return Long.parseLong(reservationData[RES_IDX_TOTAL_PRICE].replaceAll(\"[^0-9]\", \"\"));\r\n            } catch (Exception e) { return 0; }\r\n        }\r\n        return 0;\r\n    }\r\n\r\n    public boolean validateReservationAndCheckIn(String lastSixDigits, String inputRoomNumber) {\r\n        // (임시) 서버 검증 로직을 호출하거나, 여기서 목록을 받아와서 검증\r\n        // 편의상 AUTH_ROOM_SERVICE와 비슷하게 처리\r\n        return sendRequest(\"RES_VALIDATE_CHECKIN\", lastSixDigits + \",\" + inputRoomNumber).isSuccess();\r\n    }\r\n\r\n    public boolean processCheckout(String roomNumber) {\r\n        return sendRequest(\"RES_CHECKOUT\", roomNumber).isSuccess();\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/hms/controller/ReservationController.java b/src/hms/controller/ReservationController.java
+--- a/src/hms/controller/ReservationController.java	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/src/hms/controller/ReservationController.java	(date 1764069584992)
+@@ -6,6 +6,7 @@
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Map;
++import hms.model.ReservationDataManager;
+ 
+ public class ReservationController {
+ 
+@@ -70,7 +71,9 @@
+         if (reservationData.length > RES_IDX_TOTAL_PRICE) {
+             try {
+                 return Long.parseLong(reservationData[RES_IDX_TOTAL_PRICE].replaceAll("[^0-9]", ""));
+-            } catch (Exception e) { return 0; }
++            } catch (Exception e) {
++                return 0;
++            }
+         }
+         return 0;
+     }
+@@ -81,7 +84,15 @@
+         return sendRequest("RES_VALIDATE_CHECKIN", lastSixDigits + "," + inputRoomNumber).isSuccess();
+     }
+ 
+-    public boolean processCheckout(String roomNumber) {
+-        return sendRequest("RES_CHECKOUT", roomNumber).isSuccess();
++    public boolean processCheckout(String roomNumber, long lateFee) {
++        // DataManager의 수정된 메서드 호출
++        ReservationDataManager dataManager = new ReservationDataManager(); // 또는 필드에 있는 객체 사용
++        boolean success = dataManager.processCheckoutByRoom(roomNumber, lateFee);
++
++        if (success) {
++            System.out.println("DEBUG: 객실 " + roomNumber + " 체크아웃 완료 (지연료: " + lateFee + ")");
++            return true;
++        }
++        return false;
+     }
+ }
+\ No newline at end of file
+Index: src/hms/controller/ReportController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// 파일 경로: hms/controller/ReportController.java\r\npackage hms.controller;\r\n\r\nimport java.io.BufferedReader;\r\nimport java.io.FileReader;\r\nimport java.io.IOException;\r\nimport java.time.LocalDate;\r\nimport java.time.format.DateTimeFormatter;\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\n\r\n/**\r\n * ReportController (매출 및 통계 분석 담당)\r\n * [SFR-503: 객실 매출 및 F&B 매출을 집계하여 보고서를 생성한다.]\r\n */\r\npublic class ReportController {\r\n\r\n    // --- 파일 경로 상수 (프로젝트 구조에 맞게 가정) ---\r\n    private final String RES_FILE_PATH = \"data/reservation_info.txt\";\r\n    private final String FNB_FILE_PATH = \"data/room_service_requests.txt\";\r\n\r\n    // --- 파일 데이터 인덱스 (ReservationController 및 RoomServiceDataManager 구조를 따름) ---\r\n    private static final int RES_IDX_ROOM_PRICE = 10;       // 예약 파일 총 요금 인덱스\r\n    private static final int RES_IDX_CHECKOUT_DATE = 4;     // 예약 파일 체크아웃 날짜 인덱스\r\n    private static final int RES_IDX_STATUS = 12;           // 예약 파일 상태 인덱스\r\n\r\n    private static final int REQ_IDX_TOTAL_PRICE = 3;       // 룸서비스 파일 총 금액 인덱스\r\n    private static final int REQ_IDX_STATUS = 4;            // 룸서비스 파일 상태 인덱스\r\n    private static final int REQ_IDX_TIMESTAMP = 5;         // 룸서비스 파일 요청 시간 인덱스\r\n\r\n    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(\"yyyy-MM-dd\");\r\n\r\n    /**\r\n     * View에서 호출하여 기간별 총 매출 보고서를 생성합니다.\r\n     * @param startDateStr 시작 날짜 (YYYY-MM-DD)\r\n     * @param endDateStr 종료 날짜 (YYYY-MM-DD)\r\n     * @return 매출 지표 Map (TotalRevenue, RoomRevenue, FNBRevenue)\r\n     */\r\n    public Map<String, Long> generateTotalReport(String startDateStr, String endDateStr) {\r\n        LocalDate startDate = LocalDate.parse(startDateStr, formatter);\r\n        LocalDate endDate = LocalDate.parse(endDateStr, formatter);\r\n\r\n        long roomRevenue = calculateRoomRevenue(startDate, endDate);\r\n        long fnbRevenue = calculateFNBRevenue(startDate, endDate);\r\n        long totalRevenue = roomRevenue + fnbRevenue;\r\n\r\n        Map<String, Long> reportData = new HashMap<>();\r\n        reportData.put(\"RoomRevenue\", roomRevenue);\r\n        reportData.put(\"FNBRevenue\", fnbRevenue);\r\n        reportData.put(\"TotalRevenue\", totalRevenue);\r\n\r\n        return reportData;\r\n    }\r\n\r\n    /**\r\n     * 기간 내 체크아웃 완료된 예약의 객실 매출을 계산합니다.\r\n     */\r\n    private long calculateRoomRevenue(LocalDate startDate, LocalDate endDate) {\r\n        long revenue = 0;\r\n        try (BufferedReader reader = new BufferedReader(new FileReader(RES_FILE_PATH))) {\r\n            String line;\r\n\r\n            // 헤더 스킵 로직 (파일의 첫 줄이 헤더일 경우)\r\n            if ((line = reader.readLine()) != null) { /* 헤더 스킵 */ }\r\n\r\n            while ((line = reader.readLine()) != null) {\r\n                if (line.trim().isEmpty()) continue; // ⭐ [강화] 빈 라인 스킵\r\n\r\n                String[] data = line.split(\",\", -1);\r\n\r\n                // ⭐ [강화] 필수 필드 (가격과 상태)가 존재하는지 확인\r\n                if (data.length <= RES_IDX_ROOM_PRICE || data.length <= RES_IDX_STATUS) continue;\r\n\r\n                String status = data[RES_IDX_STATUS].trim();\r\n\r\n                // 1. 체크아웃 완료된 건만 집계 (\"CHECKED_OUT\" 상태 사용 가정)\r\n                if (status.equals(\"CHECKED_OUT\")) {\r\n                    try {\r\n                        String checkoutDateStr = data[RES_IDX_CHECKOUT_DATE].trim();\r\n                        LocalDate checkoutDate = LocalDate.parse(checkoutDateStr, formatter);\r\n\r\n                        // 2. 보고 기간 내 포함되는지 확인\r\n                        if (!checkoutDate.isBefore(startDate) && !checkoutDate.isAfter(endDate)) {\r\n                            // 가격 파싱 로직 강화\r\n                            String priceStr = data[RES_IDX_ROOM_PRICE].replaceAll(\"[^0-9]\", \"\");\r\n                            if (priceStr.isEmpty()) priceStr = \"0\"; // 빈 값이면 0으로 처리\r\n\r\n                            revenue += Long.parseLong(priceStr);\r\n                        }\r\n                    } catch (Exception ignored) {\r\n                        // 날짜 또는 가격 파싱 오류 발생 시, 이 데이터 행은 무시하고 다음 줄로 이동\r\n                        System.err.println(\"경고: 예약 파일 파싱 오류 발생. 해당 라인 무시됨.\");\r\n                    }\r\n                }\r\n            }\r\n        } catch (IOException e) {\r\n            System.err.println(\"예약 정보 파일을 읽는 중 오류 발생: \" + e.getMessage());\r\n        }\r\n        return revenue;\r\n    }\r\n\r\n    /**\r\n     * 기간 내 '결제완료' 상태인 룸서비스 주문의 매출을 계산합니다.\r\n     */\r\n    private long calculateFNBRevenue(LocalDate startDate, LocalDate endDate) {\r\n        long revenue = 0;\r\n        try (BufferedReader reader = new BufferedReader(new FileReader(FNB_FILE_PATH))) {\r\n            String line;\r\n            if ((line = reader.readLine()) != null) { /* 헤더 스킵 */ } // 헤더 스킵 로직\r\n\r\n            while ((line = reader.readLine()) != null) {\r\n                if (line.trim().isEmpty()) continue; // ⭐ [강화] 빈 라인 스킵\r\n\r\n                String[] data = line.split(\",\");\r\n                // 필수 필드 길이 확인\r\n                if (data.length <= REQ_IDX_TIMESTAMP || data.length <= REQ_IDX_TOTAL_PRICE) continue;\r\n\r\n                String status = data[REQ_IDX_STATUS].trim();\r\n\r\n                // 1. '결제완료' 상태의 주문만 집계 (\"결제완료\" 상태 사용 가정)\r\n                if (status.equals(\"결제완료\")) {\r\n                    try {\r\n                        // 룸서비스 파일의 시간 형식은 YYYYMMDDHHmmss이므로, YYYYMMDD 부분만 추출\r\n                        String paidDateStr = data[REQ_IDX_TIMESTAMP].substring(0, 8);\r\n                        LocalDate paidDate = LocalDate.parse(paidDateStr, DateTimeFormatter.ofPattern(\"yyyyMMdd\"));\r\n\r\n                        // 2. 보고 기간 내 포함되는지 확인\r\n                        if (!paidDate.isBefore(startDate) && !paidDate.isAfter(endDate)) {\r\n                            // 가격 파싱 로직 강화\r\n                            String priceStr = data[REQ_IDX_TOTAL_PRICE].replaceAll(\"[^0-9]\", \"\");\r\n                            if (priceStr.isEmpty()) priceStr = \"0\"; // 빈 값이면 0으로 처리\r\n\r\n                            revenue += Long.parseLong(priceStr);\r\n                        }\r\n                    } catch (Exception ignored) {\r\n                        System.err.println(\"경고: 룸서비스 파일 파싱 오류 발생. 해당 라인 무시됨.\");\r\n                    }\r\n                }\r\n            }\r\n        } catch (IOException e) {\r\n            System.err.println(\"룸서비스 요청 파일을 읽는 중 오류 발생: \" + e.getMessage());\r\n        }\r\n        return revenue;\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/hms/controller/ReportController.java b/src/hms/controller/ReportController.java
+--- a/src/hms/controller/ReportController.java	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/src/hms/controller/ReportController.java	(date 1764066794326)
+@@ -1,4 +1,3 @@
+-// 파일 경로: hms/controller/ReportController.java
+ package hms.controller;
+ 
+ import java.io.BufferedReader;
+@@ -6,35 +5,34 @@
+ import java.io.IOException;
+ import java.time.LocalDate;
+ import java.time.format.DateTimeFormatter;
+-import java.util.HashMap;
+ import java.util.Map;
++import java.util.LinkedHashMap;
++import java.util.List;
+ 
+ /**
+  * ReportController (매출 및 통계 분석 담당)
+- * [SFR-503: 객실 매출 및 F&B 매출을 집계하여 보고서를 생성한다.]
++ * [SFR-503: 객실, F&B, 지연 요금 매출을 집계하여 보고서를 생성한다.]
+  */
+ public class ReportController {
+ 
+-    // --- 파일 경로 상수 (프로젝트 구조에 맞게 가정) ---
++    // --- 파일 경로 상수 (프로젝트 표준) ---
+     private final String RES_FILE_PATH = "data/reservation_info.txt";
+-    private final String FNB_FILE_PATH = "data/room_service_requests.txt";
++    private final String FNB_REQ_FILE_PATH = "data/room_service_requests.txt";
++    private static final int RES_IDX_LATE_FEE = 14; // ⭐ [확인 필요] 지연 요금이 저장된 인덱스 (15번째 필드 가정)
+ 
+-    // --- 파일 데이터 인덱스 (ReservationController 및 RoomServiceDataManager 구조를 따름) ---
+-    private static final int RES_IDX_ROOM_PRICE = 10;       // 예약 파일 총 요금 인덱스
+-    private static final int RES_IDX_CHECKOUT_DATE = 4;     // 예약 파일 체크아웃 날짜 인덱스
++    // --- 파일 데이터 인덱스 (ReservationDataManager 구조를 따름) ---
++    private static final int RES_IDX_ROOM_PRICE = 10;       // 총 요금 인덱스
++    private static final int RES_IDX_CHECKOUT_DATE = 4;     // 체크아웃 날짜 인덱스
+     private static final int RES_IDX_STATUS = 12;           // 예약 파일 상태 인덱스
+ 
+-    private static final int REQ_IDX_TOTAL_PRICE = 3;       // 룸서비스 파일 총 금액 인덱스
+-    private static final int REQ_IDX_STATUS = 4;            // 룸서비스 파일 상태 인덱스
+-    private static final int REQ_IDX_TIMESTAMP = 5;         // 룸서비스 파일 요청 시간 인덱스
++    private static final int REQ_IDX_TOTAL_PRICE = 3;
++    private static final int REQ_IDX_STATUS = 4;
++    private static final int REQ_IDX_TIMESTAMP = 5;
+ 
+     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+ 
+     /**
+-     * View에서 호출하여 기간별 총 매출 보고서를 생성합니다.
+-     * @param startDateStr 시작 날짜 (YYYY-MM-DD)
+-     * @param endDateStr 종료 날짜 (YYYY-MM-DD)
+-     * @return 매출 지표 Map (TotalRevenue, RoomRevenue, FNBRevenue)
++     * 최종 보고서 생성을 위한 진입점 메서드
+      */
+     public Map<String, Long> generateTotalReport(String startDateStr, String endDateStr) {
+         LocalDate startDate = LocalDate.parse(startDateStr, formatter);
+@@ -42,10 +40,14 @@
+ 
+         long roomRevenue = calculateRoomRevenue(startDate, endDate);
+         long fnbRevenue = calculateFNBRevenue(startDate, endDate);
+-        long totalRevenue = roomRevenue + fnbRevenue;
++        long lateFeeRevenue = calculateLateFeeRevenue(startDate, endDate); // ⭐ [추가] 지연 요금 매출 계산
+ 
+-        Map<String, Long> reportData = new HashMap<>();
++        long totalRevenue = roomRevenue + fnbRevenue + lateFeeRevenue;
++
++        // LinkedHashMap을 사용하여 View에서 요청한 순서와 키 이름으로 항목을 배치합니다.
++        Map<String, Long> reportData = new LinkedHashMap<>();
+         reportData.put("RoomRevenue", roomRevenue);
++        reportData.put("LateFeeRevenue", lateFeeRevenue);
+         reportData.put("FNBRevenue", fnbRevenue);
+         reportData.put("TotalRevenue", totalRevenue);
+ 
+@@ -59,37 +61,29 @@
+         long revenue = 0;
+         try (BufferedReader reader = new BufferedReader(new FileReader(RES_FILE_PATH))) {
+             String line;
+-
+-            // 헤더 스킵 로직 (파일의 첫 줄이 헤더일 경우)
+             if ((line = reader.readLine()) != null) { /* 헤더 스킵 */ }
+ 
+             while ((line = reader.readLine()) != null) {
+-                if (line.trim().isEmpty()) continue; // ⭐ [강화] 빈 라인 스킵
++                if (line.trim().isEmpty()) continue;
+ 
+                 String[] data = line.split(",", -1);
+-
+-                // ⭐ [강화] 필수 필드 (가격과 상태)가 존재하는지 확인
+-                if (data.length <= RES_IDX_ROOM_PRICE || data.length <= RES_IDX_STATUS) continue;
++                if (data.length <= RES_IDX_STATUS) continue;
+ 
+                 String status = data[RES_IDX_STATUS].trim();
+ 
+-                // 1. 체크아웃 완료된 건만 집계 ("CHECKED_OUT" 상태 사용 가정)
+                 if (status.equals("CHECKED_OUT")) {
+                     try {
+                         String checkoutDateStr = data[RES_IDX_CHECKOUT_DATE].trim();
+                         LocalDate checkoutDate = LocalDate.parse(checkoutDateStr, formatter);
+ 
+-                        // 2. 보고 기간 내 포함되는지 확인
+                         if (!checkoutDate.isBefore(startDate) && !checkoutDate.isAfter(endDate)) {
+-                            // 가격 파싱 로직 강화
+                             String priceStr = data[RES_IDX_ROOM_PRICE].replaceAll("[^0-9]", "");
+-                            if (priceStr.isEmpty()) priceStr = "0"; // 빈 값이면 0으로 처리
++                            if (priceStr.isEmpty()) priceStr = "0";
+ 
+                             revenue += Long.parseLong(priceStr);
+                         }
+                     } catch (Exception ignored) {
+-                        // 날짜 또는 가격 파싱 오류 발생 시, 이 데이터 행은 무시하고 다음 줄로 이동
+-                        System.err.println("경고: 예약 파일 파싱 오류 발생. 해당 라인 무시됨.");
++                        System.err.println("경고: 예약 파일의 날짜/가격 파싱 오류.");
+                     }
+                 }
+             }
+@@ -99,17 +93,59 @@
+         return revenue;
+     }
+ 
++    /**
++     * 기간 내 체크아웃된 예약의 지연 요금 매출을 계산합니다. (⭐ 신규 메서드)
++     */
++    private long calculateLateFeeRevenue(LocalDate startDate, LocalDate endDate) {
++        long revenue = 0;
++        try (BufferedReader reader = new BufferedReader(new FileReader(RES_FILE_PATH))) {
++            String line;
++            if ((line = reader.readLine()) != null) { /* 헤더 스킵 */ }
++
++            while ((line = reader.readLine()) != null) {
++                if (line.trim().isEmpty()) continue;
++
++                String[] data = line.split(",", -1);
++                // ⭐ [강화] 지연 요금 필드까지 모두 있는지 확인 (Index 14)
++                if (data.length <= RES_IDX_LATE_FEE) continue;
++
++                String status = data[RES_IDX_STATUS].trim();
++
++                if (status.equals("CHECKED_OUT")) {
++                    try {
++                        String checkoutDateStr = data[RES_IDX_CHECKOUT_DATE].trim();
++                        LocalDate checkoutDate = LocalDate.parse(checkoutDateStr, formatter);
++
++                        if (!checkoutDate.isBefore(startDate) && !checkoutDate.isAfter(endDate)) {
++                            // 지연 요금 파싱
++                            String priceStr = data[RES_IDX_LATE_FEE].replaceAll("[^0-9]", "");
++                            if (priceStr.isEmpty()) priceStr = "0";
++
++                            revenue += Long.parseLong(priceStr);
++                        }
++                    } catch (Exception ignored) {
++                        System.err.println("경고: 예약 파일의 지연 요금 파싱 오류.");
++                    }
++                }
++            }
++        } catch (IOException e) {
++            // 오류는 메인 메서드에서 출력되므로 여기서는 생략
++        }
++        return revenue;
++    }
++
++
+     /**
+      * 기간 내 '결제완료' 상태인 룸서비스 주문의 매출을 계산합니다.
+      */
+     private long calculateFNBRevenue(LocalDate startDate, LocalDate endDate) {
+         long revenue = 0;
+-        try (BufferedReader reader = new BufferedReader(new FileReader(FNB_FILE_PATH))) {
++        try (BufferedReader reader = new BufferedReader(new FileReader(FNB_REQ_FILE_PATH))) {
+             String line;
+-            if ((line = reader.readLine()) != null) { /* 헤더 스킵 */ } // 헤더 스킵 로직
++            if ((line = reader.readLine()) != null) { /* 헤더 스킵 */ }
+ 
+             while ((line = reader.readLine()) != null) {
+-                if (line.trim().isEmpty()) continue; // ⭐ [강화] 빈 라인 스킵
++                if (line.trim().isEmpty()) continue;
+ 
+                 String[] data = line.split(",");
+                 // 필수 필드 길이 확인
+@@ -117,28 +153,25 @@
+ 
+                 String status = data[REQ_IDX_STATUS].trim();
+ 
+-                // 1. '결제완료' 상태의 주문만 집계 ("결제완료" 상태 사용 가정)
+                 if (status.equals("결제완료")) {
+                     try {
+                         // 룸서비스 파일의 시간 형식은 YYYYMMDDHHmmss이므로, YYYYMMDD 부분만 추출
+                         String paidDateStr = data[REQ_IDX_TIMESTAMP].substring(0, 8);
+                         LocalDate paidDate = LocalDate.parse(paidDateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
+ 
+-                        // 2. 보고 기간 내 포함되는지 확인
+                         if (!paidDate.isBefore(startDate) && !paidDate.isAfter(endDate)) {
+-                            // 가격 파싱 로직 강화
+                             String priceStr = data[REQ_IDX_TOTAL_PRICE].replaceAll("[^0-9]", "");
+-                            if (priceStr.isEmpty()) priceStr = "0"; // 빈 값이면 0으로 처리
++                            if (priceStr.isEmpty()) priceStr = "0";
+ 
+                             revenue += Long.parseLong(priceStr);
+                         }
+                     } catch (Exception ignored) {
+-                        System.err.println("경고: 룸서비스 파일 파싱 오류 발생. 해당 라인 무시됨.");
++                        System.err.println("경고: 룸서비스 파일 파싱 오류.");
+                     }
+                 }
+             }
+         } catch (IOException e) {
+-            System.err.println("룸서비스 요청 파일을 읽는 중 오류 발생: " + e.getMessage());
++            // 오류는 메인 메서드에서 출력되므로 여기서는 생략
+         }
+         return revenue;
+     }
+Index: data/room_service_requests.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>R251120-008,304,사이다 x 1; 초콜릿 x 1; 와인 x 1,68000,완료,20251120022448\r\nR251120-009,103,에그토스트 x 1; 초콜릿 x 1; 와인 x 1; 피자 x 1; 햄버거 x 1; 콜라 x 1,100000,완료,20251120022743\r\nR251122-010,102,콜라 x 1; 햄버거 x 1,18000,결제완료,20251122184504\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/data/room_service_requests.txt b/data/room_service_requests.txt
+--- a/data/room_service_requests.txt	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/data/room_service_requests.txt	(date 1764066015408)
+@@ -1,3 +1,6 @@
+ R251120-008,304,사이다 x 1; 초콜릿 x 1; 와인 x 1,68000,완료,20251120022448
+ R251120-009,103,에그토스트 x 1; 초콜릿 x 1; 와인 x 1; 피자 x 1; 햄버거 x 1; 콜라 x 1,100000,완료,20251120022743
+ R251122-010,102,콜라 x 1; 햄버거 x 1,18000,결제완료,20251122184504
++R251124-011,102,치즈케이크 x 1; 치킨 x 1; 불닭볶음면 x 1; 사이다 x 1,39000,결제완료,20251124163706
++R251124-012,101,와인 x 1,60000,결제완료,20251124175801
++R251125-013,101,사이다 x 1,3000,완료,20251125191950
+Index: src/hms/view/ReportPanel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// 파일 경로: hms/view/ReportPanel.java\r\npackage hms.view;\r\n\r\nimport hms.controller.ReportController;\r\nimport com.toedter.calendar.JDateChooser;\r\nimport javax.swing.*;\r\nimport javax.swing.border.TitledBorder;\r\nimport java.awt.*;\r\nimport java.text.NumberFormat;\r\nimport java.util.Date;\r\nimport java.util.Locale;\r\nimport java.util.Map;\r\nimport java.text.SimpleDateFormat;\r\n\r\n/**\r\n * [관리자] 매출 보고서 기간 조회 및 결과 출력 패널 (SFR-503).\r\n */\r\npublic class ReportPanel extends JPanel {\r\n\r\n    private final ReportController controller;\r\n    // ⭐ [추가] ReportFrame 부모 프레임 필드\r\n    private final ReportFrame parentFrame;\r\n\r\n    private JDateChooser startDateChooser;\r\n    private JDateChooser endDateChooser;\r\n    private JTextArea summaryArea;\r\n\r\n    private final SimpleDateFormat formatter = new SimpleDateFormat(\"yyyy-MM-dd\");\r\n\r\n    public ReportPanel(ReportFrame parentFrame) { // ⭐ 생성자가 ReportFrame을 받도록 수정\r\n        this.controller = new ReportController();\r\n        this.parentFrame = parentFrame; // 부모 프레임 저장\r\n\r\n        setLayout(new BorderLayout(15, 15));\r\n        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));\r\n\r\n        // 1. 헤더 (타이틀)\r\n        JLabel titleLabel = new JLabel(\"\uD83D\uDCCA 기간별 매출 및 수익 보고서\", SwingConstants.CENTER);\r\n        titleLabel.setFont(new Font(\"SansSerif\", Font.BOLD, 24));\r\n        add(titleLabel, BorderLayout.NORTH);\r\n\r\n        // 2. 중앙 패널 (입력 + 요약)\r\n        JPanel centerPanel = new JPanel(new BorderLayout(15, 15));\r\n        centerPanel.add(createInputPanel(), BorderLayout.NORTH);\r\n        centerPanel.add(createSummaryPanel(), BorderLayout.CENTER);\r\n        add(centerPanel, BorderLayout.CENTER);\r\n\r\n        // 3. 하단 (버튼)\r\n        add(createSouthPanel(), BorderLayout.SOUTH);\r\n    }\r\n\r\n    private JPanel createInputPanel() {\r\n        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));\r\n        panel.setBorder(BorderFactory.createTitledBorder(\"조회 기간 설정\"));\r\n\r\n        startDateChooser = new JDateChooser(new Date());\r\n        endDateChooser = new JDateChooser(new Date());\r\n\r\n        panel.add(new JLabel(\"시작 날짜:\"));\r\n        panel.add(startDateChooser);\r\n        panel.add(new JLabel(\"종료 날짜:\"));\r\n        panel.add(endDateChooser);\r\n\r\n        return panel;\r\n    }\r\n\r\n    private JPanel createSummaryPanel() {\r\n        JPanel panel = new JPanel(new BorderLayout());\r\n\r\n        summaryArea = new JTextArea(15, 40);\r\n        summaryArea.setEditable(false);\r\n        summaryArea.setFont(new Font(\"Monospaced\", Font.PLAIN, 14));\r\n\r\n        JScrollPane scrollPane = new JScrollPane(summaryArea);\r\n        scrollPane.setBorder(BorderFactory.createTitledBorder(\r\n                null, \"매출 요약 및 상세 내역\", TitledBorder.CENTER, TitledBorder.TOP));\r\n\r\n        panel.add(scrollPane, BorderLayout.CENTER);\r\n        return panel;\r\n    }\r\n\r\n    private JPanel createSouthPanel() {\r\n        JPanel southPanel = new JPanel(new BorderLayout());\r\n\r\n        JButton runButton = new JButton(\"▶\uFE0F 보고서 생성 및 조회\");\r\n        runButton.setFont(runButton.getFont().deriveFont(Font.BOLD, 14f));\r\n        runButton.addActionListener(e -> generateReport());\r\n\r\n        // ⭐ [추가] 나가기 버튼 (UX 개선)\r\n        JButton exitButton = new JButton(\"⬅\uFE0F 메인 화면으로 돌아가기\");\r\n        exitButton.setFont(exitButton.getFont().deriveFont(Font.BOLD, 14f));\r\n        exitButton.addActionListener(e -> parentFrame.returnToAdminMainWithConfirmation());\r\n\r\n        // ⭐ [추가] 버튼 크기 통일을 위한 GridLayout 사용\r\n        JPanel buttonSizingPanel = new JPanel(new GridLayout(1, 2, 10, 0));\r\n        buttonSizingPanel.add(runButton);\r\n        buttonSizingPanel.add(exitButton);\r\n\r\n        JPanel buttonGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));\r\n        buttonGroup.add(buttonSizingPanel);\r\n\r\n        southPanel.add(buttonGroup, BorderLayout.EAST);\r\n        return southPanel;\r\n    }\r\n\r\n\r\n    private void generateReport() {\r\n        Date startDate = startDateChooser.getDate();\r\n        Date endDate = endDateChooser.getDate();\r\n\r\n        if (startDate == null || endDate == null) {\r\n            JOptionPane.showMessageDialog(this, \"시작일과 종료일을 모두 선택해주세요.\", \"입력 오류\", JOptionPane.ERROR_MESSAGE);\r\n            return;\r\n        }\r\n        if (startDate.after(endDate)) {\r\n            JOptionPane.showMessageDialog(this, \"시작일은 종료일보다 빨라야 합니다.\", \"입력 오류\", JOptionPane.ERROR_MESSAGE);\r\n            return;\r\n        }\r\n\r\n        try {\r\n            String startDateStr = formatter.format(startDate);\r\n            String endDateStr = formatter.format(endDate);\r\n\r\n            // Controller 호출 및 결과 받기\r\n            Map<String, Long> reportData = controller.generateTotalReport(startDateStr, endDateStr);\r\n\r\n            displayReport(reportData, startDateStr, endDateStr);\r\n\r\n        } catch (Exception e) {\r\n            summaryArea.setText(\"보고서 생성 중 심각한 오류 발생. 콘솔을 확인하세요.\");\r\n            e.printStackTrace();\r\n        }\r\n    }\r\n\r\n    private void displayReport(Map<String, Long> data, String start, String end) {\r\n        long total = data.getOrDefault(\"TotalRevenue\", 0L);\r\n        long room = data.getOrDefault(\"RoomRevenue\", 0L);\r\n        long fnb = data.getOrDefault(\"FNBRevenue\", 0L);\r\n\r\n        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);\r\n\r\n        String report = String.format(\r\n                \"===============================================\\n\" +\r\n                        \"  기간별 매출 보고서 (%s ~ %s)\\n\" +\r\n                        \"===============================================\\n\\n\" +\r\n                        \" [1] 총 객실 매출 (Room Revenue):\\t %s 원\\n\" + // ⭐ [수정] 포맷팅 플래그 제거, %s만 사용\r\n                        \" [2] 총 식음료 매출 (F&B Revenue):\\t %s 원\\n\" + // ⭐ [수정] 포맷팅 플래그 제거, %s만 사용\r\n                        \"-----------------------------------------------\\n\" +\r\n                        \" 최종 총 수익 (Total Revenue):\\t %s 원\\n\" +     // ⭐ [수정] 포맷팅 플래그 제거, %s만 사용\r\n                        \"===============================================\\n\",\r\n                start, end,\r\n                nf.format(room), // nf.format()은 이미 문자열을 반환합니다.\r\n                nf.format(fnb),\r\n                nf.format(total)\r\n        );\r\n\r\n        summaryArea.setText(report);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/hms/view/ReportPanel.java b/src/hms/view/ReportPanel.java
+--- a/src/hms/view/ReportPanel.java	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/src/hms/view/ReportPanel.java	(date 1764066629609)
+@@ -1,4 +1,3 @@
+-// 파일 경로: hms/view/ReportPanel.java
+ package hms.view;
+ 
+ import hms.controller.ReportController;
+@@ -11,6 +10,8 @@
+ import java.util.Locale;
+ import java.util.Map;
+ import java.text.SimpleDateFormat;
++import java.time.LocalDate;
++import java.time.format.DateTimeFormatter;
+ 
+ /**
+  * [관리자] 매출 보고서 기간 조회 및 결과 출력 패널 (SFR-503).
+@@ -18,7 +19,6 @@
+ public class ReportPanel extends JPanel {
+ 
+     private final ReportController controller;
+-    // ⭐ [추가] ReportFrame 부모 프레임 필드
+     private final ReportFrame parentFrame;
+ 
+     private JDateChooser startDateChooser;
+@@ -27,9 +27,9 @@
+ 
+     private final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+ 
+-    public ReportPanel(ReportFrame parentFrame) { // ⭐ 생성자가 ReportFrame을 받도록 수정
++    public ReportPanel(ReportFrame parentFrame) {
+         this.controller = new ReportController();
+-        this.parentFrame = parentFrame; // 부모 프레임 저장
++        this.parentFrame = parentFrame;
+ 
+         setLayout(new BorderLayout(15, 15));
+         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+@@ -86,12 +86,10 @@
+         runButton.setFont(runButton.getFont().deriveFont(Font.BOLD, 14f));
+         runButton.addActionListener(e -> generateReport());
+ 
+-        // ⭐ [추가] 나가기 버튼 (UX 개선)
+         JButton exitButton = new JButton("⬅️ 메인 화면으로 돌아가기");
+         exitButton.setFont(exitButton.getFont().deriveFont(Font.BOLD, 14f));
+         exitButton.addActionListener(e -> parentFrame.returnToAdminMainWithConfirmation());
+ 
+-        // ⭐ [추가] 버튼 크기 통일을 위한 GridLayout 사용
+         JPanel buttonSizingPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+         buttonSizingPanel.add(runButton);
+         buttonSizingPanel.add(exitButton);
+@@ -135,6 +133,7 @@
+     private void displayReport(Map<String, Long> data, String start, String end) {
+         long total = data.getOrDefault("TotalRevenue", 0L);
+         long room = data.getOrDefault("RoomRevenue", 0L);
++        long lateFee = data.getOrDefault("LateFeeRevenue", 0L); // ⭐ 지연 요금 추출
+         long fnb = data.getOrDefault("FNBRevenue", 0L);
+ 
+         NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+@@ -143,13 +142,22 @@
+                 "===============================================\n" +
+                         "  기간별 매출 보고서 (%s ~ %s)\n" +
+                         "===============================================\n\n" +
+-                        " [1] 총 객실 매출 (Room Revenue):\t %s 원\n" + // ⭐ [수정] 포맷팅 플래그 제거, %s만 사용
+-                        " [2] 총 식음료 매출 (F&B Revenue):\t %s 원\n" + // ⭐ [수정] 포맷팅 플래그 제거, %s만 사용
++
++                        // ⭐ [수정 1] 객실 매출
++                        " [1] 총 객실 매출 (Room Revenue):\t %s 원\n" +
++
++                        // ⭐ [수정 2] 지연 체크아웃 매출 (새 항목)
++                        " [2] 총 지연 체크아웃 매출 (Late Checkout Revenue):\t %s 원\n" +
++
++                        // ⭐ [수정 3] 식음료 매출 순서 조정
++                        " [3] 총 식음료 매출 (F&B Revenue):\t %s 원\n" +
++
+                         "-----------------------------------------------\n" +
+-                        " 최종 총 수익 (Total Revenue):\t %s 원\n" +     // ⭐ [수정] 포맷팅 플래그 제거, %s만 사용
++                        " 최종 총 수익 (Total Revenue):\t %s 원\n" +
+                         "===============================================\n",
+                 start, end,
+-                nf.format(room), // nf.format()은 이미 문자열을 반환합니다.
++                nf.format(room),
++                nf.format(lateFee), // ⭐ 지연 요금 포맷팅 적용
+                 nf.format(fnb),
+                 nf.format(total)
+         );

@@ -1,0 +1,242 @@
+Index: data/reservation_info.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>251117-380508,조원민,010-6606-2640,2025-11-07,2025-11-08,15:00,11:00,2,스위트,302,300000,immediate,CHECKED_OUT,2025-11-22 18:29:04\r\n251117-637736,이학산,010-1111-2222,2025-11-17,2025-11-18,17:30,11:00,2,디럭스,204,150000,onsite,CHECKED_IN\r\n251118-327151,최현우,010-2332-2222,2025-11-18,2025-11-19,15:00,11:00,2,디럭스,204,150000,immediate,PENDING\r\n251118-374408,최현우리끼리,010-1111-1111,2025-11-22,2025-11-24,17:00,11:00,2,스탠다드,101,200000,immediate,CHECKED_IN\r\n251122-808882,하지성,010-1111-2222,2025-11-23,2025-11-24,15:00,11:00,2,디럭스,201,150000,immediate,PENDING,admin\r\n251122-316061,김기현,010-3333-3333,2025-11-23,2025-11-24,15:00,11:00,2,스탠다드,102,100000,immediate,PENDING,korea\r\n251122-640672,김기현,010-2222-2222,2025-11-22,2025-11-23,15:00,11:00,2,스탠다드,102,100000,immediate,CHECKED_OUT,2025-11-22 18:46:42\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/data/reservation_info.txt b/data/reservation_info.txt
+--- a/data/reservation_info.txt	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/data/reservation_info.txt	(date 1764070558759)
+@@ -1,7 +1,10 @@
+ 251117-380508,조원민,010-6606-2640,2025-11-07,2025-11-08,15:00,11:00,2,스위트,302,300000,immediate,CHECKED_OUT,2025-11-22 18:29:04
+-251117-637736,이학산,010-1111-2222,2025-11-17,2025-11-18,17:30,11:00,2,디럭스,204,150000,onsite,CHECKED_IN
++251117-637736,이학산,010-1111-2222,2025-11-17,2025-11-18,17:30,11:00,2,디럭스,204,150000,onsite,CHECKED_OUT,2025-11-25 20:35:58,1780000
+ 251118-327151,최현우,010-2332-2222,2025-11-18,2025-11-19,15:00,11:00,2,디럭스,204,150000,immediate,PENDING
+-251118-374408,최현우리끼리,010-1111-1111,2025-11-22,2025-11-24,17:00,11:00,2,스탠다드,101,200000,immediate,CHECKED_IN
++251118-374408,최현우리끼리,010-1111-1111,2025-11-22,2025-11-24,17:00,11:00,2,스탠다드,101,200000,immediate,CHECKED_OUT,2025-11-24 17:59:05
+ 251122-808882,하지성,010-1111-2222,2025-11-23,2025-11-24,15:00,11:00,2,디럭스,201,150000,immediate,PENDING,admin
+-251122-316061,김기현,010-3333-3333,2025-11-23,2025-11-24,15:00,11:00,2,스탠다드,102,100000,immediate,PENDING,korea
++251122-316061,김기현,010-3333-3333,2025-11-23,2025-11-24,15:00,11:00,2,스탠다드,102,100000,immediate,CHECKED_OUT,2025-11-24 17:27:40
+ 251122-640672,김기현,010-2222-2222,2025-11-22,2025-11-23,15:00,11:00,2,스탠다드,102,100000,immediate,CHECKED_OUT,2025-11-22 18:46:42
++251124-394168,김기현,010-6666-6666,2025-11-24,2025-11-25,15:00,11:00,2,스탠다드,101,100000,immediate,CHECKED_OUT,2025-11-24 17:59:29
++251124-462507,김기훈,010-3333-6666,2025-11-24,2025-11-25,15:00,11:00,2,스탠다드,102,100000,immediate,CHECKED_OUT,2025-11-25 19:33:52
++251125-688974,이설희,0101-8888-4444,2025-11-25,2025-11-26,15:00,11:00,2,스탠다드,101,100000,immediate,CHECKED_IN,korea
+Index: src/hms/server/HMSServer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package hms.server;\r\n\r\nimport hms.network.NetworkMessage;\r\nimport hms.model.User;\r\nimport hms.model.UserDataManager;\r\nimport hms.model.ReservationDataManager;\r\nimport hms.model.RoomServiceDataManager;\r\n\r\nimport java.io.*;\r\nimport java.net.*;\r\nimport java.util.List;\r\nimport java.util.Map;\r\n\r\npublic class HMSServer {\r\n    public static void main(String[] args) {\r\n        try (ServerSocket serverSocket = new ServerSocket(5000)) {\r\n            System.out.println(\">>> HMS 서버(Port:5000)가 시작되었습니다.\");\r\n\r\n            // 데이터 매니저들 (서버가 파일을 관리함)\r\n            UserDataManager userMgr = new UserDataManager();\r\n            ReservationDataManager resMgr = new ReservationDataManager();\r\n            RoomServiceDataManager roomServiceMgr = new RoomServiceDataManager();\r\n\r\n            while (true) {\r\n                Socket clientSocket = serverSocket.accept();\r\n                System.out.println(\">>> 클라이언트 접속: \" + clientSocket.getInetAddress());\r\n                new Thread(() -> handleClient(clientSocket, userMgr, resMgr, roomServiceMgr)).start();\r\n            }\r\n        } catch (IOException e) {\r\n            e.printStackTrace();\r\n        }\r\n    }\r\n\r\n    private static void handleClient(Socket socket, UserDataManager userMgr, ReservationDataManager resMgr, RoomServiceDataManager rsMgr) {\r\n        try (\r\n                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());\r\n                ObjectInputStream in = new ObjectInputStream(socket.getInputStream());\r\n        ) {\r\n            while (true) {\r\n                try {\r\n                    NetworkMessage req = (NetworkMessage) in.readObject();\r\n                    NetworkMessage res = null;\r\n                    String cmd = req.getCommand();\r\n                    System.out.println(\"[요청] \" + cmd);\r\n\r\n                    switch (cmd) {\r\n                        // --- [1] 회원 관리 ---\r\n                        case \"LOGIN\":\r\n                            String[] login = ((String) req.getData()).split(\",\"); // \"id,pw\"\r\n                            User user = userMgr.findUserById(login[0]);\r\n                            if (user != null && user.getPassword().equals(login[1])) {\r\n                                res = new NetworkMessage(true, \"성공\", user);\r\n                            } else {\r\n                                res = new NetworkMessage(false, \"실패\", null);\r\n                            }\r\n                            break;\r\n                        case \"SIGNUP\":\r\n                            User newUser = (User) req.getData();\r\n                            if (userMgr.checkIfUserExists(newUser.getId())) res = new NetworkMessage(false, \"ID중복\", 1);\r\n                            else if (userMgr.addUser(newUser)) res = new NetworkMessage(true, \"가입성공\", 0);\r\n                            else res = new NetworkMessage(false, \"저장실패\", 2);\r\n                            break;\r\n                        case \"DELETE_USER\":\r\n                            boolean delOk = userMgr.deleteUserById((String) req.getData());\r\n                            res = new NetworkMessage(delOk, \"탈퇴처리\", null);\r\n                            break;\r\n\r\n                        // --- [2] 예약 관리 ---\r\n                        case \"RES_SAVE\":\r\n                            boolean saveOk = resMgr.saveReservation((Map<String, Object>) req.getData());\r\n                            res = new NetworkMessage(saveOk, \"예약저장\", null);\r\n                            break;\r\n                        case \"RES_SEARCH\":\r\n                            String[] search = ((String) req.getData()).split(\",\");\r\n                            res = new NetworkMessage(true, \"검색\", resMgr.searchReservation(search[0], search[1]));\r\n                            break;\r\n                        case \"RES_GET_BY_ID\":\r\n                            res = new NetworkMessage(true, \"ID조회\", resMgr.getReservationById((String) req.getData()));\r\n                            break;\r\n                        case \"RES_UPDATE_STATUS\":\r\n                            String[] upStatus = ((String) req.getData()).split(\",\");\r\n                            res = new NetworkMessage(resMgr.updateStatus(upStatus[0], upStatus[1]), \"상태변경\", null);\r\n                            break;\r\n                        case \"RES_GET_BOOKED\":\r\n                            String[] dates = ((String) req.getData()).split(\",\");\r\n                            res = new NetworkMessage(true, \"방목록\", resMgr.getBookedRooms(dates[0], dates[1]));\r\n                            break;\r\n                        case \"RES_CHECKOUT\": // 체크아웃 처리\r\n                            String roomNum = (String) req.getData();\r\n                            // ⭐ [수정] DataManager의 Checkout 로직을 호출하여 파일에 상태 변경\r\n                            boolean checkoutOk = resMgr.processCheckoutByRoom(roomNum);\r\n\r\n                            // ⭐ [수정] 성공 여부를 클라이언트에 반환\r\n                            res = new NetworkMessage(checkoutOk, \"체크아웃\", null);\r\n                            break;\r\n                        case \"RES_VALIDATE_CHECKIN\": // 체크인 검증\r\n                            String[] valData = ((String) req.getData()).split(\",\");\r\n                            // 실제로는 ReservationDataManager에서 로직 수행\r\n                            res = new NetworkMessage(true, \"검증성공(임시)\", null);\r\n                            break;\r\n                        case \"AUTH_ROOM_SERVICE\": // 룸서비스 인증\r\n                            // 로직 수행\r\n                            res = new NetworkMessage(true, \"인증성공(임시)\", null);\r\n                            break;\r\n\r\n                        // --- [3] 룸서비스 관리 (신규 추가) ---\r\n                        case \"RS_GET_ALL_MENU\":\r\n                            res = new NetworkMessage(true, \"메뉴전체\", rsMgr.getAllMenu());\r\n                            break;\r\n                        case \"RS_GET_CATEGORIES\":\r\n                            res = new NetworkMessage(true, \"카테고리\", rsMgr.getAllCategories());\r\n                            break;\r\n                        case \"RS_GET_MENU_BY_CAT\":\r\n                            res = new NetworkMessage(true, \"카테고리별메뉴\", rsMgr.getMenuByCategory((String) req.getData()));\r\n                            break;\r\n                        case \"RS_ADD_MENU\":\r\n                            Map<String, Object> addM = (Map<String, Object>) req.getData();\r\n                            String newMId = rsMgr.addMenuItem((String)addM.get(\"name\"), (Integer)addM.get(\"price\"), (String)addM.get(\"cat\"));\r\n                            res = new NetworkMessage(newMId != null, \"메뉴추가\", newMId);\r\n                            break;\r\n                        case \"RS_UPDATE_MENU\":\r\n                            Map<String, Object> upM = (Map<String, Object>) req.getData();\r\n                            boolean upMOk = rsMgr.updateMenuItem((String)upM.get(\"id\"), (String)upM.get(\"name\"), (Integer)upM.get(\"price\"), (String)upM.get(\"cat\"));\r\n                            res = new NetworkMessage(upMOk, \"메뉴수정\", null);\r\n                            break;\r\n                        case \"RS_DELETE_MENU\":\r\n                            res = new NetworkMessage(rsMgr.deleteMenuItem((String) req.getData()), \"메뉴삭제\", null);\r\n                            break;\r\n                        case \"RS_ADD_REQUEST\":\r\n                            Map<String, Object> reqOrder = (Map<String, Object>) req.getData();\r\n                            String reqId = rsMgr.addServiceRequest((String)reqOrder.get(\"room\"), (String)reqOrder.get(\"items\"), (Long)reqOrder.get(\"price\"));\r\n                            res = new NetworkMessage(reqId != null, \"주문추가\", reqId);\r\n                            break;\r\n                        case \"RS_GET_ALL_REQUESTS\":\r\n                            res = new NetworkMessage(true, \"요청목록\", rsMgr.getAllRequests());\r\n                            break;\r\n                        case \"RS_GET_REQ_BY_STATUS\":\r\n                            res = new NetworkMessage(true, \"상태별요청\", rsMgr.getRequestsByStatus((String) req.getData()));\r\n                            break;\r\n                        case \"RS_UPDATE_REQ_STATUS\":\r\n                            String[] rsStat = ((String) req.getData()).split(\",\");\r\n                            res = new NetworkMessage(rsMgr.updateRequestStatus(rsStat[0], rsStat[1]), \"요청상태변경\", null);\r\n                            break;\r\n                        case \"RS_UPDATE_STATUS_BY_ROOM\":\r\n                            String[] rsRoomStat = ((String) req.getData()).split(\",\"); // room, oldStat, newStat\r\n                            res = new NetworkMessage(rsMgr.updateStatusByRoomAndStatus(rsRoomStat[0], rsRoomStat[1], rsRoomStat[2]), \"일괄변경\", null);\r\n                            break;\r\n\r\n                        default:\r\n                            res = new NetworkMessage(false, \"알수없는명령\", null);\r\n                    }\r\n                    out.writeObject(res);\r\n                    out.flush();\r\n                } catch (EOFException e) { break; }\r\n            }\r\n        } catch (Exception e) { e.printStackTrace(); }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/hms/server/HMSServer.java b/src/hms/server/HMSServer.java
+--- a/src/hms/server/HMSServer.java	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/src/hms/server/HMSServer.java	(date 1764068873054)
+@@ -86,11 +86,20 @@
+                             res = new NetworkMessage(true, "방목록", resMgr.getBookedRooms(dates[0], dates[1]));
+                             break;
+                         case "RES_CHECKOUT": // 체크아웃 처리
+-                            String roomNum = (String) req.getData();
+-                            // ⭐ [수정] DataManager의 Checkout 로직을 호출하여 파일에 상태 변경
+-                            boolean checkoutOk = resMgr.processCheckoutByRoom(roomNum);
++                            // ⭐ [수정] 클라이언트가 보낸 "방번호,지연요금" 문자열을 분리
++                            String[] checkoutData = ((String) req.getData()).split(",");
++                            String roomNum = checkoutData[0];
++                            long lateFee = 0;
++
++                            try {
++                                lateFee = Long.parseLong(checkoutData[1]);
++                            } catch (Exception e) {
++                                System.err.println("지연 요금 파싱 오류: " + e.getMessage());
++                            }
+ 
+-                            // ⭐ [수정] 성공 여부를 클라이언트에 반환
++                            // ⭐ [수정] 2개의 인자(방 번호, 지연 요금)를 전달하여 DataManager 호출 (오류 해결)
++                            boolean checkoutOk = resMgr.processCheckoutByRoom(roomNum, lateFee);
++
+                             res = new NetworkMessage(checkoutOk, "체크아웃", null);
+                             break;
+                         case "RES_VALIDATE_CHECKIN": // 체크인 검증
+Index: src/hms/view/CheckoutProcessPanel.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package hms.view;\r\n\r\nimport hms.controller.ReservationController;\r\nimport hms.controller.RoomServiceController; // 변경\r\nimport javax.swing.*;\r\nimport java.awt.*;\r\nimport java.text.NumberFormat;\r\nimport java.util.List;\r\nimport java.util.Locale;\r\n\r\npublic class CheckoutProcessPanel extends JPanel {\r\n\r\n    private final CheckInOutFrame parentFrame;\r\n    private final ReservationController controller;\r\n    private final RoomServiceController serviceController; // 변경\r\n    private final String[] reservationData;\r\n\r\n    private JTextArea billArea;\r\n    private long finalTotalBill = 0;\r\n\r\n    private static final int RES_IDX_ROOM_NUM = 9;\r\n    private static final int RES_IDX_CHECK_IN_DATE = 3;\r\n\r\n    public CheckoutProcessPanel(CheckInOutFrame parentFrame, ReservationController controller, String[] reservationData) {\r\n        this.parentFrame = parentFrame;\r\n        this.controller = controller;\r\n        this.reservationData = reservationData;\r\n        this.serviceController = new RoomServiceController(); // 변경\r\n\r\n        setLayout(new BorderLayout(15, 15));\r\n        setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));\r\n\r\n        billArea = new JTextArea();\r\n        billArea.setEditable(false);\r\n        billArea.setFont(new Font(\"Monospaced\", Font.PLAIN, 14));\r\n        JPanel billPanel = new JPanel(new BorderLayout());\r\n        billPanel.setBorder(BorderFactory.createTitledBorder(\"\uD83D\uDCB0 최종 청구서\"));\r\n        billPanel.add(new JScrollPane(billArea), BorderLayout.CENTER);\r\n        add(billPanel, BorderLayout.CENTER);\r\n\r\n        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));\r\n        JButton payBtn = new JButton(\"✅ 결제 및 체크아웃\");\r\n        JButton cancelBtn = new JButton(\"취소\");\r\n        payBtn.addActionListener(e -> handleCheckoutComplete());\r\n        cancelBtn.addActionListener(e -> parentFrame.switchPanel(CheckInOutFrame.MANAGEMENT_VIEW, null));\r\n        btnPanel.add(cancelBtn); btnPanel.add(payBtn);\r\n        add(btnPanel, BorderLayout.SOUTH);\r\n\r\n        loadAndDisplayBill();\r\n    }\r\n\r\n    private void loadAndDisplayBill() {\r\n        String roomNumber = reservationData[RES_IDX_ROOM_NUM];\r\n        long serviceCost = calculateRoomServiceCost(roomNumber);\r\n        long roomCharge = controller.getRoomCharge(reservationData);\r\n        finalTotalBill = roomCharge + serviceCost;\r\n\r\n        String checkIn = reservationData[RES_IDX_CHECK_IN_DATE];\r\n        String now = java.time.format.DateTimeFormatter.ofPattern(\"yyyy-MM-dd HH:mm\").format(java.time.LocalDateTime.now());\r\n        String serviceDetails = getServiceDetails(roomNumber);\r\n\r\n        billArea.setText(String.format(\r\n                \"=== 체크아웃 청구서 ===\\n객실: %s\\n체크인: %s\\n체크아웃: %s\\n----------------------\\n숙박료: %,d원\\n룸서비스: %,d원\\n----------------------\\n[룸서비스 상세]\\n%s\\n----------------------\\n총 결제액: %,d원\",\r\n                roomNumber, checkIn, now, roomCharge, serviceCost, serviceDetails, finalTotalBill));\r\n    }\r\n\r\n    private long calculateRoomServiceCost(String roomNumber) {\r\n        long total = 0;\r\n        // Controller 호출\r\n        List<String[]> reqs = serviceController.getRequestsByStatus(\"완료\");\r\n        for (String[] req : reqs) {\r\n            if (req[1].equals(roomNumber)) {\r\n                try { total += Long.parseLong(req[3]); } catch (Exception e) {}\r\n            }\r\n        }\r\n        return total;\r\n    }\r\n\r\n    private String getServiceDetails(String roomNumber) {\r\n        StringBuilder sb = new StringBuilder();\r\n        List<String[]> reqs = serviceController.getRequestsByStatus(\"완료\");\r\n        for (String[] req : reqs) {\r\n            if (req[1].equals(roomNumber)) {\r\n                sb.append(String.format(\"- %s (%,d원)\\n\", req[2], Long.parseLong(req[3])));\r\n            }\r\n        }\r\n        return sb.length() > 0 ? sb.toString() : \"(내역 없음)\";\r\n    }\r\n\r\n    private void handleCheckoutComplete() {\r\n        String room = reservationData[RES_IDX_ROOM_NUM];\r\n        if (JOptionPane.showConfirmDialog(this, \"결제하시겠습니까?\", \"확인\", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {\r\n            if (controller.processCheckout(room)) {\r\n                // Controller 호출 (일괄 결제 처리)\r\n                serviceController.updateStatusByRoomAndStatus(room, \"완료\", \"결제완료\");\r\n                JOptionPane.showMessageDialog(this, \"체크아웃 완료\");\r\n                parentFrame.switchPanel(CheckInOutFrame.MANAGEMENT_VIEW, null);\r\n            } else {\r\n                JOptionPane.showMessageDialog(this, \"체크아웃 실패\");\r\n            }\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/hms/view/CheckoutProcessPanel.java b/src/hms/view/CheckoutProcessPanel.java
+--- a/src/hms/view/CheckoutProcessPanel.java	(revision 915ba2c99419874ef4c4d8de759d9ae14dc64523)
++++ b/src/hms/view/CheckoutProcessPanel.java	(date 1764068477096)
+@@ -1,31 +1,40 @@
+ package hms.view;
+ 
+ import hms.controller.ReservationController;
+-import hms.controller.RoomServiceController; // 변경
++import hms.controller.RoomServiceController;
+ import javax.swing.*;
+ import java.awt.*;
+ import java.text.NumberFormat;
+ import java.util.List;
+ import java.util.Locale;
++import java.time.Duration;
++import java.time.LocalTime;
++import java.time.LocalDateTime;
++import java.time.LocalDate;
++import java.time.format.DateTimeFormatter; // ⭐ [추가] DateTimeFormatter import
+ 
+ public class CheckoutProcessPanel extends JPanel {
+ 
+     private final CheckInOutFrame parentFrame;
+     private final ReservationController controller;
+-    private final RoomServiceController serviceController; // 변경
++    private final RoomServiceController serviceController;
+     private final String[] reservationData;
+ 
+     private JTextArea billArea;
+     private long finalTotalBill = 0;
+ 
++    // --- 상수 선언 ---
+     private static final int RES_IDX_ROOM_NUM = 9;
+     private static final int RES_IDX_CHECK_IN_DATE = 3;
++    private static final int RES_IDX_CHECKOUT_DATE = 4; // ⭐ [수정] 예정 체크아웃 날짜 인덱스 (Index 4)
++    private static final long LATE_CHECKOUT_RATE = 10000;
++    private static final LocalTime STANDARD_CHECKOUT_TIME = LocalTime.of(11, 0);
+ 
+     public CheckoutProcessPanel(CheckInOutFrame parentFrame, ReservationController controller, String[] reservationData) {
+         this.parentFrame = parentFrame;
+         this.controller = controller;
+         this.reservationData = reservationData;
+-        this.serviceController = new RoomServiceController(); // 변경
++        this.serviceController = new RoomServiceController();
+ 
+         setLayout(new BorderLayout(15, 15));
+         setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+@@ -51,24 +60,45 @@
+ 
+     private void loadAndDisplayBill() {
+         String roomNumber = reservationData[RES_IDX_ROOM_NUM];
++
+         long serviceCost = calculateRoomServiceCost(roomNumber);
+         long roomCharge = controller.getRoomCharge(reservationData);
+-        finalTotalBill = roomCharge + serviceCost;
++        long lateFee = calculateLateCheckOutFee(); // ⭐ [수정] 지연 요금 계산
++
++        finalTotalBill = serviceCost + lateFee; // 최종 결제 금액 (미결제 서비스 + 지연 요금)
+ 
+         String checkIn = reservationData[RES_IDX_CHECK_IN_DATE];
+-        String now = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(java.time.LocalDateTime.now());
++        // ⭐ [수정] 현재 체크아웃 시간 포맷
++        String actualCheckoutTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now());
+         String serviceDetails = getServiceDetails(roomNumber);
+ 
++        // NumberFormat을 사용하여 모든 금액을 문자열로 변환 (오류 해결 핵심)
++        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
++
++        // ⭐ [수정] 청구서 포맷을 %s로 변경하고 지연 요금 항목 추가
+         billArea.setText(String.format(
+-                "=== 체크아웃 청구서 ===\n객실: %s\n체크인: %s\n체크아웃: %s\n----------------------\n숙박료: %,d원\n룸서비스: %,d원\n----------------------\n[룸서비스 상세]\n%s\n----------------------\n총 결제액: %,d원",
+-                roomNumber, checkIn, now, roomCharge, serviceCost, serviceDetails, finalTotalBill));
++                "=== 체크아웃 청구서 ===\n객실: %s\n체크인: %s\n실제 체크아웃: %s (기준: 11:00)\n" +
++                        "----------------------------------\n" +
++                        " 숙박료 (예약 시 결제): %s원\n" +
++                        " 룸서비스 비용 (미결제): %s원\n" +
++                        " 지연 체크아웃 요금 : %s원\n" +
++                        "----------------------------------\n" +
++                        "[룸서비스 상세]\n%s\n" +
++                        "----------------------------------\n" +
++                        " 총 결제 요청 금액: %s원",
++                roomNumber, checkIn, actualCheckoutTime,
++                nf.format(roomCharge),
++                nf.format(serviceCost),
++                nf.format(lateFee),
++                serviceDetails,
++                nf.format(finalTotalBill)));
+     }
+ 
+     private long calculateRoomServiceCost(String roomNumber) {
+         long total = 0;
+-        // Controller 호출
+         List<String[]> reqs = serviceController.getRequestsByStatus("완료");
+         for (String[] req : reqs) {
++            // [Index 1] 객실 번호, [Index 3] 금액
+             if (req[1].equals(roomNumber)) {
+                 try { total += Long.parseLong(req[3]); } catch (Exception e) {}
+             }
+@@ -76,22 +106,72 @@
+         return total;
+     }
+ 
++    private long calculateLateCheckOutFee() {
++        try {
++            // 1. 예약 데이터에서 날짜를 가져와 LocalDate로 파싱합니다.
++            String scheduledCheckInDateStr = reservationData[RES_IDX_CHECK_IN_DATE]; // Index 3
++            String scheduledCheckoutDateStr = reservationData[RES_IDX_CHECKOUT_DATE]; // Index 4
++
++            LocalDate scheduledInDate = LocalDate.parse(scheduledCheckInDateStr);
++            LocalDate scheduledOutDate = LocalDate.parse(scheduledCheckoutDateStr);
++
++            // ⭐ [핵심 수정 1] 당일 체크인/당일 체크아웃 예외 처리 (1박 미만 숙박)
++            // 예정 체크아웃 날짜와 예정 체크인 날짜가 같으면 지연 요금은 면제됩니다.
++            if (scheduledInDate.isEqual(scheduledOutDate)) {
++                System.out.println("DEBUG: 당일 체크인/아웃이므로 지연 요금 면제.");
++                return 0;
++            }
++
++            // 2. 예정 퇴실 시점 (정상적인 1박 2일 이상 숙박에 대한 기준 시간)
++            // 예정 체크아웃 날짜의 11:00 AM을 기준으로 설정
++            LocalDateTime scheduledCheckout = LocalDateTime.of(scheduledOutDate, STANDARD_CHECKOUT_TIME);
++            LocalDateTime actualCheckoutDateTime = LocalDateTime.now(); // 실제 체크아웃 시간
++
++            // 3. 실제 체크아웃이 예정 시간보다 빠르거나 같으면 0원
++            if (!actualCheckoutDateTime.isAfter(scheduledCheckout)) {
++                return 0;
++            }
++
++            // 4. 지연 시간 (분 단위) 계산
++            Duration duration = Duration.between(scheduledCheckout, actualCheckoutDateTime);
++            long minutesLate = duration.toMinutes();
++
++            // 5. 시간 단위 올림 계산 (1분만 넘어도 다음 시간으로 간주)
++            long penaltyHours = (minutesLate + 59) / 60;
++
++            return penaltyHours * LATE_CHECKOUT_RATE;
++
++        } catch (Exception e) {
++            System.err.println("지연 요금 계산 오류: " + e.getMessage());
++            return 0;
++        }
++    }
++
+     private String getServiceDetails(String roomNumber) {
+         StringBuilder sb = new StringBuilder();
+         List<String[]> reqs = serviceController.getRequestsByStatus("완료");
++        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
++
+         for (String[] req : reqs) {
+             if (req[1].equals(roomNumber)) {
+-                sb.append(String.format("- %s (%,d원)\n", req[2], Long.parseLong(req[3])));
++                try {
++                    String priceFormatted = nf.format(Long.parseLong(req[3]));
++                    sb.append(String.format("- %s (%s원)\n", req[2], priceFormatted));
++                } catch (Exception e) {
++                    sb.append(String.format("- %s (금액 오류)\n", req[2]));
++                }
+             }
+         }
+-        return sb.length() > 0 ? sb.toString() : "(내역 없음)";
++        return sb.length() > 0 ? sb.toString() : "(내역 없음)\n";
+     }
+ 
+     private void handleCheckoutComplete() {
+         String room = reservationData[RES_IDX_ROOM_NUM];
+-        if (JOptionPane.showConfirmDialog(this, "결제하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+-            if (controller.processCheckout(room)) {
+-                // Controller 호출 (일괄 결제 처리)
++        long lateFee = calculateLateCheckOutFee();
++        // ⭐ [수정] 결제 확인 메시지에 포맷팅 적용
++        if (JOptionPane.showConfirmDialog(this, String.format("총 %,d원을 결제하고 체크아웃 하시겠습니까?", finalTotalBill), "확인", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
++            if (controller.processCheckout(room, lateFee)) {
++                // 룸서비스 정산 완료 요청 (서버로 위임)
+                 serviceController.updateStatusByRoomAndStatus(room, "완료", "결제완료");
+                 JOptionPane.showMessageDialog(this, "체크아웃 완료");
+                 parentFrame.switchPanel(CheckInOutFrame.MANAGEMENT_VIEW, null);
