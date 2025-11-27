@@ -4,7 +4,7 @@ import hms.controller.ReportController;
 import com.toedter.calendar.JDateChooser;
 import javax.swing.*;
 import java.awt.*;
-import java.text.SimpleDateFormat; // ⭐ 이 줄이 반드시 있어야 합니다!
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
@@ -16,7 +16,6 @@ public class ReportPanel extends JPanel {
     private JDateChooser endDateChooser;
     private JTextArea summaryArea;
 
-    // 날짜 포맷터 (이 부분에서 오류가 났었습니다)
     private final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     public ReportPanel(ReportFrame parentFrame) {
@@ -82,6 +81,9 @@ public class ReportPanel extends JPanel {
 
         long roomRev = ((Number) data.getOrDefault("RoomRevenue", 0)).longValue();
         long fnbRev = ((Number) data.getOrDefault("FNBRevenue", 0)).longValue();
+        // ⭐ [추가] 지연료 매출 가져오기
+        long lateFeeRev = ((Number) data.getOrDefault("LateFeeRevenue", 0)).longValue();
+
         long totalRev = ((Number) data.getOrDefault("TotalRevenue", 0)).longValue();
         double occRate = ((Number) data.getOrDefault("OccupancyRate", 0.0)).doubleValue();
         long occNights = ((Number) data.getOrDefault("OccupiedNights", 0)).longValue();
@@ -89,6 +91,7 @@ public class ReportPanel extends JPanel {
 
         String reportType = start.after(new Date()) ? "[미래 예측 보고서]" : "[실적 보고서]";
 
+        // ⭐ [수정] 텍스트 포맷에 지연료 매출 추가
         String txt = String.format(
                 "===============================================\n" +
                         "  %s (%s ~ %s)\n" +
@@ -99,10 +102,11 @@ public class ReportPanel extends JPanel {
                         "     ➤ 점유율: %.2f%%\n\n" +
                         " [2] 매출 현황 (Revenue)\n" +
                         "     - 객실 매출: \t%,d 원\n" +
+                        "     - 지연료 매출: \t%,d 원\n" + // 여기에 추가되었습니다
                         "     - 룸서비스: \t%,d 원\n" +
                         "     ➤ 총 매출: \t%,d 원\n" +
                         "===============================================\n",
-                reportType, sStr, eStr, capacity, occNights, occRate, roomRev, fnbRev, totalRev
+                reportType, sStr, eStr, capacity, occNights, occRate, roomRev, lateFeeRev, fnbRev, totalRev
         );
         summaryArea.setText(txt);
     }

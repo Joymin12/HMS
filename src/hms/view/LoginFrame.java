@@ -79,7 +79,7 @@ public class LoginFrame extends JFrame {
                         new AdminMainFrame(userName, userController).setVisible(true);
                     } else {
                         // 2. 일반 사용자 권한일 경우: UserMainFrame(userName, userController)
-                        new UserMainFrame(userName, userController).setVisible(true);
+                        new UserMainFrame(loggedInUser, userController).setVisible(true);
                     }
                     // ★★★ 수정 완료 ★★★
 
@@ -104,8 +104,4 @@ public class LoginFrame extends JFrame {
         setVisible(true);
     }
 
-    // 이 클래스 실행을 위한 main 메서드 (테스트용)
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LoginFrame());
-    }
 }
