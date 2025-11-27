@@ -8,9 +8,7 @@ import java.util.Map;
 
 public class ReportController {
 
-    // ⭐ 오류가 났던 부분: 변수 선언을 확실하게 추가했습니다.
-    // 님의 IP (192.168.0.2)로 설정해두었습니다.
-    private final String SERVER_IP = "127.0.0.1";
+    private final String SERVER_IP = "110.46.46.92";
     private final int SERVER_PORT = 5000;
 
     private NetworkMessage send(String cmd, Object data) {
