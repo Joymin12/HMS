@@ -95,7 +95,7 @@ public class UserMainFrame extends JFrame {
                 if (deleteSuccess) {
                     JOptionPane.showMessageDialog(null, "회원 탈퇴가 완료되었습니다.");
                     dispose();
-                    // new LoginFrame().setVisible(true);
+                    new LoginFrame().setVisible(true);
                 } else {
                     JOptionPane.showMessageDialog(null, "탈퇴 중 오류가 발생했습니다.");
                 }

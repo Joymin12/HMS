@@ -135,6 +135,7 @@ public class SignUpFrame extends JFrame {
                     case 0: // 성공
                         JOptionPane.showMessageDialog(null, name + "님, 회원가입이 완료되었습니다!");
                         dispose();
+                        new LoginFrame().setVisible(true);
                         break;
                     case 1: // ID 중복
                         showError("이미 사용 중인 아이디입니다.");
