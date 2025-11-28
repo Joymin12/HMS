@@ -79,7 +79,7 @@ public class UserMainFrame extends JFrame {
             if (userController != null) userController.logout();
             JOptionPane.showMessageDialog(null, "로그아웃 되었습니다.");
             dispose();
-            // new LoginFrame().setVisible(true); // LoginFrame이 있다고 가정
+            new LoginFrame().setVisible(true);
         });
 
         // 계정 탈퇴
@@ -139,14 +139,13 @@ public class UserMainFrame extends JFrame {
         // [이벤트 연결]
         btnReservation.addActionListener(e -> {
             this.setVisible(false);
-            // ReservationFrame 생성자도 User 객체를 받도록 되어있다면 this.currentUser 전달
-            // 예: new ReservationFrame(this, this.reservationController, this.currentUser);
-            // 현재 코드 기준으로는 userName만 넘기는지 확인 필요
+            // UserController, ReservationController 모두 전달
+            new ReservationFrame(this, this.reservationController, this.userController);
         });
 
         btnReservationCheck.addActionListener(e -> {
             this.setVisible(false);
-            new ReservationCheckFrame(this, this.reservationController);
+            new ReservationCheckFrame(this, this.reservationController, false);
         });
 
         // 룸서비스 주문 (기존 코드 유지)

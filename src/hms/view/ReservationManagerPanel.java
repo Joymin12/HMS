@@ -5,6 +5,7 @@ import hms.controller.UserController;
 import hms.model.User;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.text.SimpleDateFormat;
@@ -92,6 +93,14 @@ public class ReservationManagerPanel extends JPanel {
                 step4_info.updateSummary(); // 4단계 정보 업데이트 호출
             }
         }
+
+        // ⭐ [수정] 등급 선택 단계로 돌아올 때마다 매진 상태를 다시 계산하여 화면 갱신
+        if (stepName.equals("step2_grade")) {
+            if (step2_grade != null) {
+                step2_grade.updateGradeStatus();
+            }
+        }
+
         cardLayout.show(cardsPanel, stepName);
     }
 
@@ -112,17 +121,12 @@ public class ReservationManagerPanel extends JPanel {
         this.nights = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 
-    public Map<String, Integer> getRoomPrices() {
-        Map<String, Integer> prices = new HashMap<>();
-        prices.put("스탠다드", 100000);
-        prices.put("디럭스", 150000);
-        prices.put("스위트", 300000);
-        return prices;
-    }
+    // ❌ 하드코딩된 가격을 리턴하던 getRoomPrices() 메서드는 제거되었음.
 
     public void setStep2Data(String grade) {
         this.selectedGrade = grade;
-        this.basePricePerNight = getRoomPrices().getOrDefault(grade, 0);
+        // ❌ 기존 하드코딩된 가격을 설정하던 this.basePricePerNight = ... 줄은 제거됨.
+        // 가격은 이제 Step3에서 실시간으로 조회됨.
     }
 
     public List<String> getBookedRooms() {
@@ -136,13 +140,72 @@ public class ReservationManagerPanel extends JPanel {
         return reservationController.getBookedRooms(checkInStr, checkOutStr);
     }
 
-    public void setStep3Data(String roomNumber) {
-        this.selectedRoom = roomNumber;
-        calculatePrice();
+    /**
+     * ⭐ [필수 로직 추가] 선택된 날짜를 기준으로 등급별 매진 여부를 확인합니다.
+     * (Reservation_GradePanel에서 호출됨)
+     */
+    public Map<String, Boolean> getGradeSoldOutStatus() {
+        Map<String, Boolean> status = new HashMap<>();
+
+        if (checkInDate == null || checkOutDate == null) {
+            status.put("스탠다드", false);
+            status.put("디럭스", false);
+            status.put("스위트", false);
+            return status;
+        }
+
+        // 1. 이미 예약된 객실 목록을 가져옴 (Controller 호출)
+        List<String> bookedRooms = getBookedRooms();
+
+        // 2. 등급별 객실 번호 목록 정의 (RoomDataManager에 있어야 이상적이지만, 현재 View/Manager에서 처리)
+        Map<String, List<String>> gradeRooms = new HashMap<>();
+        gradeRooms.put("스탠다드", Arrays.asList("101", "102", "103", "104", "105", "106", "107", "108"));
+        gradeRooms.put("디럭스", Arrays.asList("201", "202", "203", "204", "205", "206", "207", "208"));
+        gradeRooms.put("스위트", Arrays.asList("301", "302", "303", "304", "305", "306", "307", "308"));
+
+        // 3. 등급별로 매진 여부 확인
+        for (Map.Entry<String, List<String>> entry : gradeRooms.entrySet()) {
+            List<String> totalRooms = entry.getValue();
+            int totalRoomCount = totalRooms.size();
+            int bookedCount = 0;
+
+            // 해당 등급의 객실 중 예약된 객실 수를 카운트
+            for (String room : totalRooms) {
+                if (bookedRooms.contains(room)) {
+                    bookedCount++;
+                }
+            }
+
+            // 전체 객실 수 == 예약된 객실 수 이면 매진 (Sold Out)
+            boolean isSoldOut = (bookedCount == totalRoomCount);
+            status.put(entry.getKey(), isSoldOut);
+        }
+
+        return status;
     }
 
+
+    public void setStep3Data(String roomNumber) {
+        this.selectedRoom = roomNumber;
+        calculatePrice(); // ⭐ 객실 확정 시 가격 계산 트리거
+    }
+
+    /**
+     * ⭐ [수정됨] 하드코딩 대신 ReservationController를 통해 서버에 가격을 조회합니다.
+     */
     private void calculatePrice() {
-        this.totalPrice = (long) basePricePerNight * nights;
+        // 1. Controller의 새 메서드를 호출하여 서버에게 실시간 가격을 요청합니다.
+        this.totalPrice = reservationController.calculateFinalPrice(
+                this.selectedRoom,
+                (int)this.nights // nights는 long이므로 int로 변환
+        );
+
+        // 2. 가격 조회 실패 시 경고 메시지 표시
+        if (this.totalPrice <= 0) {
+            JOptionPane.showMessageDialog(reservationFrame,
+                    "경고: 객실 가격 조회에 실패했습니다. 관리자에게 문의하세요.",
+                    "가격 오류", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     // --- Getter 메소드 ---
@@ -219,7 +282,7 @@ public class ReservationManagerPanel extends JPanel {
         finalData.put("guests", guestCount);
         finalData.put("grade", selectedGrade);
         finalData.put("room", selectedRoom);
-        finalData.put("totalPrice", totalPrice);
+        finalData.put("totalPrice", totalPrice); // ⭐ 계산된 실시간 가격 사용!
 
         // 매개변수로 받은 정보들 사용
         finalData.put("customerName", customerName);

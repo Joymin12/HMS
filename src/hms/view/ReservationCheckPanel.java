@@ -5,23 +5,45 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter; // WindowAdapter import 추가 (필요 시)
+import java.util.ArrayList;
 
 /**
  * [예약 조회/확인 패널] 고객 이름과 전화번호로 예약 정보를 검색하고 표시합니다.
+ * 관리자 모드에서는 초기 로드 시 모든 예약 정보를 표시합니다.
  */
 public class ReservationCheckPanel extends JPanel {
 
+    // 예약 데이터 배열의 인덱스 상수를 명시합니다. (HMSServer와 동일)
+    private static final int RES_IDX_ID = 0;
+    private static final int RES_IDX_NAME = 1;
+    private static final int RES_IDX_PHONE = 2;
+    private static final int RES_IDX_IN_DATE = 3;
+    private static final int RES_IDX_OUT_DATE = 4;
+    private static final int RES_IDX_IN_TIME = 5;
+    private static final int RES_IDX_OUT_TIME = 6;
+    private static final int RES_IDX_GUESTS = 7;
+    private static final int RES_IDX_GRADE = 8;
+    private static final int RES_IDX_ROOM_NUM = 9;
+    private static final int RES_IDX_TOTAL_PRICE = 10;
+    private static final int RES_IDX_PAYMENT_METHOD = 11;
+    private static final int RES_IDX_STATUS = 12;
+
+    private static final String STATUS_OBLIGATORY_CHARGE = "OBLIGATORY_CHARGE";
+
     private final ReservationController controller;
+    private final boolean isAdmin; // ⭐ 관리자 여부 플래그
     private final JTextField nameField;
     private final JTextField phoneField;
     private final JTextArea resultArea;
 
-    // ⭐ [수정 1] 생성자가 ReservationController 객체를 주입받도록 변경
-    public ReservationCheckPanel(ReservationController controller) {
-        this.controller = controller; // ⭐ [수정 2] 주입받은 Controller 객체를 필드에 저장
+    /**
+     * ⭐ [핵심 수정] 생성자가 isAdmin 플래그를 받아 이중 모드를 설정합니다.
+     */
+    public ReservationCheckPanel(ReservationController controller, boolean isAdmin) {
+        this.controller = controller;
+        this.isAdmin = isAdmin;
 
         setLayout(new BorderLayout(10, 10));
         setBackground(Color.WHITE);
@@ -51,14 +73,22 @@ public class ReservationCheckPanel extends JPanel {
         resultArea = new JTextArea(10, 30);
         resultArea.setEditable(false);
         resultArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        resultArea.setBorder(BorderFactory.createTitledBorder("조회 결과"));
+        // 타이틀을 역할에 따라 변경
+        resultArea.setBorder(BorderFactory.createTitledBorder(isAdmin ? "전체 예약 목록" : "조회 결과"));
         add(new JScrollPane(resultArea), BorderLayout.CENTER);
 
         // --- 3. 버튼 리스너 연결 ---
         searchButton.addActionListener(this::handleSearchAction);
+
+        // ⭐ [핵심 로직] 관리자일 경우, 초기 로드 시 모든 데이터를 가져와 표시합니다.
+        if (this.isAdmin) {
+            loadAllReservations();
+        } else {
+            resultArea.setText("\n\n이름과 전화번호를 입력하여 예약을 조회하세요.");
+        }
     }
 
-    // --- (handleSearchAction 메서드) ---
+    // --- (handleSearchAction 메서드: 검색 버튼 클릭) ---
     private void handleSearchAction(ActionEvent e) {
         String name = nameField.getText().trim();
         String phone = phoneField.getText().trim();
@@ -68,70 +98,120 @@ public class ReservationCheckPanel extends JPanel {
             return;
         }
 
+        // 관리자 모드여도, 검색 버튼은 단일 검색을 수행합니다.
         String[] reservationData = controller.searchReservation(name, phone);
 
         if (reservationData != null) {
-            displayReservation(reservationData);
+            // 단일 조회 결과를 JTextArea에 표시
+            resultArea.setText(formatReservationSummary(reservationData));
+
+            // 일반 사용자의 경우에만 노쇼 경고 메시지 추가
+            if (!isAdmin) {
+                String paymentMethod = reservationData[RES_IDX_PAYMENT_METHOD].trim();
+                if (paymentMethod.equalsIgnoreCase("현장결제") || paymentMethod.equalsIgnoreCase("onsite")) {
+                    resultArea.append("\n\n[주의] 현장 결제 (미보장) 예약은 당일 18시까지 미 체크인 시 자동 취소됩니다.");
+                }
+            }
         } else {
             resultArea.setText("\n\n" + name + " (" + phone + ")로 검색된 예약 내역이 없습니다.");
         }
     }
 
 
-    /**
-     * Controller로부터 받은 예약 데이터를 형식화하여 JTextArea에 표시합니다.
-     */
-    public void displayReservation(String[] data) {
-        // ... (총 13개 필드 구조에 따른 인덱스 정의 기반 로직 유지) ...
-        // Index 12는 상태 필드이며, 표시 로직에 따라 추가할 수 있습니다.
-        // 현재 코드는 12개 필드 (Index 11까지)를 기준으로 출력합니다.
+    // ⭐ [NEW] 관리자 전용: 모든 예약 데이터를 불러와 표시합니다.
+    public void loadAllReservations() {
+        // ReservationController의 getAllReservations 메서드 (HMSServer -> DataManager 호출)
+        List<String[]> allData = controller.getAllReservations();
 
-        long totalPriceValue;
-
-        // 1. 가격 데이터 안전하게 변환 (Index 10 사용)
-        try {
-            totalPriceValue = Long.parseLong(data[10].trim());
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            totalPriceValue = 0;
-            System.err.println("경고: 총 요금 필드 데이터 오류. 값: " + (data.length > 10 ? data[10] : "없음"));
+        if (allData.isEmpty()) {
+            resultArea.setText("\n\n [조회 결과] 현재 시스템에 저장된 예약 내역이 없습니다.");
+            return;
         }
 
-        // 2. 출력 포맷
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== 전 체 예 약 상 세 정 보 ===\n");
+        sb.append("총 ").append(allData.size()).append("건의 예약 내역이 있습니다.\n\n");
+
+        // 가져온 모든 데이터를 순회하며 JTextArea에 표시
+        for (String[] reservationData : allData) {
+            String summary = formatReservationSummary(reservationData); // 포맷팅 재활용
+            sb.append(summary).append("\n");
+            sb.append("--------------------------------------------------\n");
+        }
+
+        resultArea.setText(sb.toString());
+    }
+
+    /**
+     * Controller로부터 받은 예약 데이터를 형식화하여 String으로 반환합니다.
+     * (JTextArea 출력을 위해 HTML 태그를 사용하지 않습니다.)
+     */
+    private String formatReservationSummary(String[] data) {
+        long totalPriceValue;
+
+        try {
+            totalPriceValue = Long.parseLong(data[RES_IDX_TOTAL_PRICE].trim());
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            totalPriceValue = 0;
+        }
+
         String priceFormatted = NumberFormat.getNumberInstance(Locale.US).format(totalPriceValue);
 
-        // 3. 예약 상태 필드 처리 (Index 12)
-        String status = (data.length > 12) ? data[12] : "UNDEFINED"; // 13번째 필드(상태) 가져오기
+        // 1. 예약 상태 필드 처리 (순수 텍스트로 변경)
+        String status = (data.length > RES_IDX_STATUS) ? data[RES_IDX_STATUS] : "UNDEFINED";
+        String displayStatusText;
+        String extraInfo = "";
 
-        // 4. JTextArea 출력 구성 (인덱스 맞춤)
+        if (status.equals(STATUS_OBLIGATORY_CHARGE)) {
+            // ⭐ [최종 경고] 관리자 조치 필요 상태 (HTML 태그 대신 텍스트 경고 사용)
+            displayStatusText = "‼️ 위약금 청구 대상 (NO-SHOW)";
+            extraInfo = "\n[조치 필요] 위약금 청구 후 상태 변경을 진행해야 합니다.";
+        } else if (status.equals("CHECKED_OUT")) {
+            displayStatusText = "✅ 체크아웃 완료";
+        } else if (status.equals("PENDING") && data[RES_IDX_PAYMENT_METHOD].trim().equalsIgnoreCase("현장결제")) {
+            displayStatusText = "⚠️ 현장 결제 대기 (미보장)";
+        } else {
+            displayStatusText = status;
+        }
+
+        // 2. 출력 구성 (HTML 태그 없이 순수 텍스트로 구성)
         String summary = String.format(
                 Locale.US,
-                "=== 예약 상세 정보 ===\n\n" +
+                "=== 예약 상세 정보 ===\n" +
                         "예약 번호: \t%s\n" +
                         "예약자: \t%s (%s)\n" +
-                        "예상 체크인 시간: \t%s (%s)\n" +
-                        "예상 체크아웃 시간: \t%s (%s)\n" +
-                        "객실 등급: \t%s (%s호)\n" +
-                        "인원: \t%s명\n" +
+                        "예상 체크인/아웃: \t%s %s ~ %s %s\n" +
+                        "객실 정보: \t%s (%s호, %s명)\n" +
                         "총 요금: \t%s원\n" +
                         "결제 방식: \t%s\n" +
-                        "예약 상태: \t%s", // ⭐ 상태 필드 추가
+                        "예약 상태: \t%s" + // ⭐ PLAIN TEXT 변수 사용
+                        "%s",
 
-                data[0], // ID
-                data[1], data[2], // 이름, 전화번호
-                data[3], data[5], // IN 날짜, IN 시간
-                data[4], data[6], // OUT 날짜, OUT 시간
-                data[8], data[9], // 등급, 객실 번호
-                data[7], // 인원 수
-                priceFormatted, // 포맷팅된 총 요금
-                data[11], // 결제 방식
-                status // 예약 상태
+                data[RES_IDX_ID],
+                data[RES_IDX_NAME], data[RES_IDX_PHONE],
+                data[RES_IDX_IN_DATE], data[RES_IDX_IN_TIME],
+                data[RES_IDX_OUT_DATE], data[RES_IDX_OUT_TIME],
+                data[RES_IDX_GRADE], data[RES_IDX_ROOM_NUM], data[RES_IDX_GUESTS],
+                priceFormatted,
+                data[RES_IDX_PAYMENT_METHOD],
+                displayStatusText, // 순수 텍스트 사용
+                extraInfo // 조치 필요 메시지
         );
 
+        return summary;
+    }
+
+    // ⭐ [OLD] 기존 displayReservation 메서드는 formatReservationSummary를 호출하도록 리팩토링되었으므로 유지.
+    public void displayReservation(String[] data) {
+        String summary = formatReservationSummary(data);
         resultArea.setText(summary);
 
-        // ★ 미보장 예약 경고 추가
-        if (data[11].trim().equalsIgnoreCase("onsite")) {
-            resultArea.append("\n\n[주의] 현장 결제 (미보장) 예약은 당일 18시까지 미 체크인 시 자동 취소됩니다.");
+        // 일반 사용자 모드일 때만 노쇼 경고 메시지 추가
+        if (!isAdmin) {
+            String paymentMethod = data[RES_IDX_PAYMENT_METHOD].trim();
+            if (paymentMethod.equalsIgnoreCase("현장결제") || paymentMethod.equalsIgnoreCase("onsite")) {
+                resultArea.append("\n\n[주의] 현장 결제 (미보장) 예약은 당일 18시까지 미 체크인 시 자동 취소됩니다.");
+            }
         }
     }
 }

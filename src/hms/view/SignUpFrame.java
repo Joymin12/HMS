@@ -24,7 +24,7 @@ public class SignUpFrame extends JFrame {
 
     // ⭐ [핵심 수정] LoginFrame에서 전달받을 UserController 필드
     private final UserController userController;
-
+    private final JFrame loginFrame;
     private final String ID_PLACEHOLDER = "사용할 ID (필수)";
     private final String PW_PLACEHOLDER = "비밀번호 (필수)";
     private final String PW_CONFIRM_PLACEHOLDER = "비밀번호 확인";
@@ -34,8 +34,9 @@ public class SignUpFrame extends JFrame {
 
 
     // ⭐ [핵심 수정] UserController 객체를 인수로 받도록 생성자 수정
-    public SignUpFrame(UserController userController) {
+    public SignUpFrame(UserController userController, JFrame loginFrame) {
         this.userController = userController; // 전달받은 Controller를 필드에 저장
+        this.loginFrame = loginFrame;
 
         setTitle("호텔 관리 시스템 - 회원가입");
         setSize(450, 450);

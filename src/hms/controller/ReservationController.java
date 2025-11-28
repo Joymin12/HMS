@@ -22,7 +22,6 @@ public class ReservationController {
     public static final int RES_IDX_CHECKOUT_TIME = 13;     // 실제 체크아웃 시간
 
     // [NEW] 지연 요금이 저장될 인덱스 (14번째 칸)
-    // 데이터 예시: ..., CHECKED_OUT, 2025-11-27 12:00:00, 20000
     public static final int RES_IDX_LATE_FEE = 14;
 
     public static final String STATUS_PENDING = "PENDING";
@@ -47,7 +46,66 @@ public class ReservationController {
         }
     }
 
-    // ... 기존 조회/검증 메서드들은 그대로 유지 ...
+    // ==========================================================
+    // ⭐ [NEW] 1. 실시간 객실 가격 조회 기능 (핵심)
+    // ==========================================================
+    /**
+     * 서버에 ROOM_GET_PRICE 명령을 보내 현재 1박 가격을 조회합니다.
+     * @param roomNumber 조회할 객실 번호
+     * @return 1박 가격 (원). 실패 시 0.
+     */
+    public int getRoomPrice(String roomNumber) {
+        // HMSServer의 case "ROOM_GET_PRICE" 호출
+        NetworkMessage res = sendRequest("ROOM_GET_PRICE", roomNumber);
+
+        if (res.isSuccess() && res.getData() instanceof Integer) {
+            return (int) res.getData(); // rooms.txt에 저장된 최신 가격
+        }
+        System.err.println("경고: 객실 가격 조회 실패 for " + roomNumber);
+        return 0; // 조회 실패
+    }
+
+    /**
+     * ⭐ [NEW] 2. 예약 화면이 최종 가격을 계산할 때 호출하는 메서드
+     * 객실 번호와 박수(nights)를 기반으로 최종 숙박 가격을 계산합니다.
+     * @param roomNumber 객실 번호
+     * @param totalNights 숙박 일수
+     * @return 최종 숙박료
+     */
+    public long calculateFinalPrice(String roomNumber, int totalNights) {
+        // 1. 서버를 통해 rooms.txt에 저장된 최신 1박 가격을 가져옵니다.
+        int pricePerNight = getRoomPrice(roomNumber);
+
+        if (pricePerNight <= 0) {
+            // 가격 조회 실패 시 0을 리턴
+            return 0;
+        }
+
+        // 2. 총 박수를 곱하여 최종 가격 계산
+        return (long) pricePerNight * totalNights;
+    }
+
+    // ==========================================================
+    // ⭐ [NEW] 3. 관리자 전체 조회 기능 추가 (Admin Global View)
+    // ==========================================================
+    /**
+     * [관리자 전용] 모든 예약 목록을 서버에서 조회합니다.
+     * (HMSServer의 RES_GET_ALL 명령을 호출합니다.)
+     */
+    public List<String[]> getAllReservations() {
+        NetworkMessage res = sendRequest("RES_GET_ALL", null);
+
+        if (res.isSuccess() && res.getData() instanceof List) {
+            return (List<String[]>) res.getData();
+        }
+        System.err.println("오류: 관리자 예약 전체 조회 실패.");
+        return new ArrayList<>();
+    }
+
+
+    // ==========================================================
+    // (기존 메서드들)
+    // ==========================================================
     public boolean saveReservationToFile(Map<String, Object> data) {
         return sendRequest("RES_SAVE", data).isSuccess();
     }
