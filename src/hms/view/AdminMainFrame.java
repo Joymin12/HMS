@@ -2,6 +2,7 @@ package hms.view;
 
 import hms.controller.UserController;
 import hms.controller.ReservationController;
+import hms.controller.RoomController;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -22,13 +23,26 @@ public class AdminMainFrame extends JFrame {
     private final int HEIGHT = 600;
 
     private final UserController userController;
+
+    // LoginController에서 전달받는 필드
+    private final ReservationController reservationController;
+    private final RoomController roomController;
+    private final String userRole;
     private final String userName;
 
-    private final ReservationController reservationController = new ReservationController();
+    /**
+     * 생성자가 4개의 인자를 받습니다.
+     */
+    public AdminMainFrame(UserController userController,
+                          ReservationController resController,
+                          RoomController roomController,
+                          String role) {
 
-    public AdminMainFrame(String userName, UserController userController) {
-        this.userName = userName;
+        this.userName = userController.getCurrentlyLoggedInUser().getName();
         this.userController = userController;
+        this.reservationController = resController;
+        this.roomController = roomController;
+        this.userRole = role;
 
         setTitle(TITLE);
         setSize(WIDTH, HEIGHT);
@@ -39,7 +53,7 @@ public class AdminMainFrame extends JFrame {
         JPanel headerPanel = createHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
 
-        JPanel mainPanel = createMainPanel(userName);
+        JPanel mainPanel = createMainPanel();
         add(mainPanel, BorderLayout.CENTER);
 
         JPanel footerPanel = createFooterPanel();
@@ -77,7 +91,10 @@ public class AdminMainFrame extends JFrame {
         return panel;
     }
 
-    private JPanel createMainPanel(String userName) {
+    /**
+     * ⭐ [핵심 수정] role에 따라 메뉴 접근을 제어하고, 리스너를 올바른 Controller에 연결합니다.
+     */
+    private JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 20));
         panel.setBackground(new Color(255, 230, 230));
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
@@ -101,10 +118,16 @@ public class AdminMainFrame extends JFrame {
         JButton btnCheckInOut = createMenuButton("🚪 체크인/아웃 관리");
         JButton btnRoomManagement = createMenuButton("🔑 객실/가격 관리");
         JButton btnReport = createMenuButton("📊 매출 보고서");
-
-        // ⭐ 사용자 관리 이모티콘만 변경됨 (☑)
         JButton btnUserManagement = createMenuButton("☑ 사용자 관리");
 
+        // =========================================================
+        // ⭐ [핵심 로직] ROLE 기반 버튼 접근 제어
+        // =========================================================
+
+        // CSR 역할 확인 (CSR은 '객실/가격 관리', '사용자 관리', '매출 보고서'에 접근 불가)
+        boolean isCSR = this.userRole.equals("csr");
+
+        // [이벤트 연결 - ADMIN/CSR 공통 Operational 기능]
         btnReservation.addActionListener(e -> {
             this.setVisible(false);
             new ReservationFrame(this, this.reservationController, this.userController);
@@ -112,7 +135,7 @@ public class AdminMainFrame extends JFrame {
 
         btnReservationCheck.addActionListener(e -> {
             this.setVisible(false);
-            new ReservationCheckFrame(this, this.reservationController);
+            new ReservationCheckFrame(this, this.reservationController, true);
         });
 
         btnRoomService.addActionListener(e -> {
@@ -125,21 +148,43 @@ public class AdminMainFrame extends JFrame {
             new CheckInOutFrame(this, this.reservationController);
         });
 
-        btnRoomManagement.addActionListener(e -> {
-            this.setVisible(false);
-            new RoomManagementFrame(this);
-        });
+        // 1. 매출 보고서 (ADMIN ONLY) - ⭐ [NEW] 추가된 로직
+        if (isCSR) {
+            btnReport.setEnabled(false);
+            btnReport.setBackground(Color.LIGHT_GRAY);
+            btnReport.setText("📊 매출 보고서 (CSR 접근 불가)");
+        } else {
+            btnReport.addActionListener(e -> {
+                this.setVisible(false);
+                new ReportFrame(this);
+            });
+        }
 
-        btnReport.addActionListener(e -> {
-            this.setVisible(false);
-            new ReportFrame(this);
-        });
+        // 2. 객실/가격 관리 (ADMIN ONLY)
+        if (isCSR) {
+            btnRoomManagement.setEnabled(false);
+            btnRoomManagement.setBackground(Color.LIGHT_GRAY);
+            btnRoomManagement.setText("🔑 객실/가격 관리 (CSR 접근 불가)");
+        } else {
+            btnRoomManagement.addActionListener(e -> {
+                this.setVisible(false);
+                new RoomManagementFrame(this, this.roomController);
+            });
+        }
 
-        btnUserManagement.addActionListener(e -> {
-            this.setVisible(false);
-            new AdminUserManagementFrame(this, this.userController);
-        });
+        // 3. 사용자 관리 (ADMIN ONLY)
+        if (isCSR) {
+            btnUserManagement.setEnabled(false);
+            btnUserManagement.setBackground(Color.LIGHT_GRAY);
+            btnUserManagement.setText("☑ 사용자 관리 (CSR 접근 불가)");
+        } else {
+            btnUserManagement.addActionListener(e -> {
+                this.setVisible(false);
+                new AdminUserManagementFrame(this, this.userController);
+            });
+        }
 
+        // 모든 버튼을 gridPanel에 추가 (순서는 그대로 유지)
         gridPanel.add(btnReservation);
         gridPanel.add(btnReservationCheck);
         gridPanel.add(btnRoomService);

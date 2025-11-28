@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.util.*;
 
 public class RoomServiceController {
-    // 🔧 문제 원인: 110.46.46.92 → 127.0.0.1로 수정
     private final String SERVER_IP = "127.0.0.1";
     private final int SERVER_PORT = 5000;
 
@@ -14,11 +13,9 @@ public class RoomServiceController {
         try (Socket s = new Socket(SERVER_IP, SERVER_PORT);
              ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(s.getInputStream())) {
-
             out.writeObject(new NetworkMessage(cmd, data));
             out.flush();
             return (NetworkMessage) in.readObject();
-
         } catch (Exception e) {
             return new NetworkMessage(false, "통신오류", null);
         }
@@ -41,19 +38,14 @@ public class RoomServiceController {
 
     public String addMenuItem(String name, int price, String category) {
         Map<String, Object> data = new HashMap<>();
-        data.put("name", name);
-        data.put("price", price);
-        data.put("cat", category);
+        data.put("name", name); data.put("price", price); data.put("cat", category);
         NetworkMessage res = send("RS_ADD_MENU", data);
         return res.isSuccess() ? (String) res.getData() : null;
     }
 
     public boolean updateMenuItem(String id, String name, int price, String category) {
         Map<String, Object> data = new HashMap<>();
-        data.put("id", id);
-        data.put("name", name);
-        data.put("price", price);
-        data.put("cat", category);
+        data.put("id", id); data.put("name", name); data.put("price", price); data.put("cat", category);
         return send("RS_UPDATE_MENU", data).isSuccess();
     }
 
@@ -63,9 +55,7 @@ public class RoomServiceController {
 
     public String addServiceRequest(String room, String items, long price) {
         Map<String, Object> data = new HashMap<>();
-        data.put("room", room);
-        data.put("items", items);
-        data.put("price", price);
+        data.put("room", room); data.put("items", items); data.put("price", price);
         NetworkMessage res = send("RS_ADD_REQUEST", data);
         return res.isSuccess() ? (String) res.getData() : null;
     }
