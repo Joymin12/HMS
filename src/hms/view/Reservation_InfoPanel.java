@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date; // Date import needs to be present based on user's original code
 
 public class Reservation_InfoPanel extends JPanel {
 
@@ -18,7 +19,7 @@ public class Reservation_InfoPanel extends JPanel {
 
     private JComboBox<String> checkInTimeCombo;
     private JComboBox<String> checkOutTimeCombo;
-    private String paymentMethod = "immediate";
+    private String paymentMethod = "immediate"; // immediate: 카드결제, onsite: 현장결제
 
     public Reservation_InfoPanel(ReservationManagerPanel manager) {
         this.manager = manager;
@@ -89,7 +90,8 @@ public class Reservation_InfoPanel extends JPanel {
         gbc.gridx = 0; gbc.gridy++; gbc.gridwidth = 2;
         formPanel.add(cardInputPanel, gbc);
 
-        noticeLabel = new JLabel("<html><font color='red'>※ 당일 18시까지 미입실 시 자동 취소</font></html>");
+        // 현장 결제 경고 (18시 이후 자동 취소)
+        noticeLabel = new JLabel("<html><font color='red'>※ 현장 결제 예약은 당일 18시까지 미입실 시 자동 취소됩니다.</font></html>");
         noticeLabel.setVisible(false);
         gbc.gridx = 0; gbc.gridy++;
         formPanel.add(noticeLabel, gbc);
@@ -121,13 +123,22 @@ public class Reservation_InfoPanel extends JPanel {
             String outTime = (String) checkOutTimeCombo.getSelectedItem();
 
             if(name.isEmpty() || phone.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "정보 누락");
+                JOptionPane.showMessageDialog(this, "예약자 정보 누락: 이름과 전화번호를 입력해주세요.");
                 return;
+            }
+
+            // ⭐ [핵심 수정] 뷰의 변수(immediate/onsite)를 서버의 기준 문자열로 변환
+            String finalPaymentMethod;
+            if (paymentMethod.equals("onsite")) {
+                finalPaymentMethod = "현장결제"; // 서버 로직에서 사용하는 문자열
+            } else {
+                finalPaymentMethod = "카드결제"; // 서버 로직에서 사용하는 문자열
             }
 
             int res = JOptionPane.showConfirmDialog(this, "예약을 확정하시겠습니까?", "확인", JOptionPane.YES_NO_OPTION);
             if (res == JOptionPane.YES_OPTION) {
-                manager.finalSaveReservation(name, phone, paymentMethod, inTime, outTime);
+                // ⭐ 변환된 문자열을 Manager로 전달하여 저장 (매출 로직에 영향)
+                manager.finalSaveReservation(name, phone, finalPaymentMethod, inTime, outTime);
             }
         });
 

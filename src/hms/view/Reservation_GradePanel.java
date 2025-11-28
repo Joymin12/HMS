@@ -1,4 +1,3 @@
-// hms/view/Reservation_GradePanel.java
 package hms.view;
 
 import javax.swing.*;
@@ -9,6 +8,8 @@ import java.util.Map;
 public class Reservation_GradePanel extends JPanel {
 
     private final ReservationManagerPanel manager;
+    private final JPanel gradesPanel; // ⭐ [수정] 갱신을 위해 필드로 선언됨
+    private final String[] grades = {"스탠다드", "디럭스", "스위트"}; // 등급 배열 고정
 
     public Reservation_GradePanel(ReservationManagerPanel manager) {
         this.manager = manager;
@@ -22,19 +23,32 @@ public class Reservation_GradePanel extends JPanel {
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         add(titleLabel, BorderLayout.NORTH);
 
-        JPanel gradesPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        // ⭐ [수정] 필드로 선언된 gradesPanel 초기화
+        gradesPanel = new JPanel(new GridLayout(3, 1, 10, 10));
         gradesPanel.setOpaque(false);
+        add(gradesPanel, BorderLayout.CENTER);
 
-        Map<String, Integer> prices = manager.getRoomPrices();
+        // 생성 시점에는 버튼을 그리지 않고, showStep("step2_grade") 호출 시 그립니다.
 
-        // (임시 데이터 - 매진 여부)
-        Map<String, Boolean> soldOut = new HashMap<>();
-        soldOut.put("스탠다드", false);
-        soldOut.put("디럭스", false);
-        soldOut.put("스위트", false);
+        JButton prevButton = new JButton("이전으로 (날짜 다시 선택)");
+        prevButton.addActionListener(e -> manager.showStep("search"));
+        add(prevButton, BorderLayout.SOUTH);
+    }
 
-        for (String gradeName : prices.keySet()) {
-            int price = prices.get(gradeName);
+    /**
+     * ⭐ [핵심 추가] 패널이 화면에 표시될 때마다 매진 상태를 계산하고 화면을 갱신합니다.
+     */
+    public void updateGradeStatus() {
+        // 1. 실시간 매진 상태 조회 (날짜 선택 정보 기반)
+        Map<String, Boolean> soldOut = manager.getGradeSoldOutStatus();
+
+        gradesPanel.removeAll(); // 기존 버튼 모두 제거
+
+        // 2. 갱신된 상태로 버튼 다시 그리기
+        for (String gradeName : grades) {
+            int price = 0; // 가격은 다음 단계에서 조회되므로 0으로 설정
+
+            // ⭐ 조회된 실시간 매진 상태를 사용
             boolean isSoldOut = soldOut.getOrDefault(gradeName, false);
 
             JButton gradeButton = createGradeButton(gradeName, price, isSoldOut);
@@ -42,27 +56,37 @@ public class Reservation_GradePanel extends JPanel {
             gradeButton.addActionListener(e -> {
                 if (!isSoldOut) {
                     manager.setStep2Data(gradeName);
-                    manager.showStep("roomShow"); // ★ 3단계 이름표 호출
+                    manager.showStep("roomShow"); // 3단계(방 선택) 호출
                 }
             });
             gradesPanel.add(gradeButton);
         }
-        add(gradesPanel, BorderLayout.CENTER);
 
-        JButton prevButton = new JButton("이전으로 (날짜 다시 선택)");
-        prevButton.addActionListener(e -> manager.showStep("search")); // ★ 1단계 이름표 호출
-        add(prevButton, BorderLayout.SOUTH);
+        gradesPanel.revalidate();
+        gradesPanel.repaint(); // 화면 갱신
     }
 
+
     private JButton createGradeButton(String name, int price, boolean soldOut) {
+        // 가격이 0으로 넘어올 경우, '요금 확정' 문구로 대체
+        String priceText = (price > 0)
+                ? String.format("1박 기본 가격: %,d원", price)
+                : "객실 선택 후 실시간 요금 확정";
+
         String text = "<html><div style='padding: 10px;'>" +
                 "<h3 style='margin:0;'>" + name + "</h3>" +
-                "<p>1박 기본 가격: " + price + "원</p>" +
+                "<p>" + priceText + "</p>" +
                 (soldOut ? "<span style='color:red; font-weight:bold;'>매진</span>" : "") +
                 "</div></html>";
         JButton button = new JButton(text);
         button.setHorizontalAlignment(SwingConstants.LEFT);
         button.setEnabled(!soldOut);
+
+        // 매진 시 비활성화 및 배경색 변경 (UX 개선)
+        if (soldOut) {
+            button.setBackground(Color.LIGHT_GRAY);
+        }
+
         return button;
     }
 }

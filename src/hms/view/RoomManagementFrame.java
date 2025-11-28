@@ -13,7 +13,7 @@ public class RoomManagementFrame extends JFrame {
     private JTable roomTable;
     private DefaultTableModel tableModel;
 
-    public RoomManagementFrame(JFrame parentFrame) {
+    public RoomManagementFrame(JFrame parentFrame, RoomController controller) {
         this.parentFrame = parentFrame;
         this.controller = new RoomController();
 
@@ -115,31 +115,58 @@ public class RoomManagementFrame extends JFrame {
         }
     }
 
+    // 이 메서드만 덮어씌우면 됩니다.
     private void handleEdit(ActionEvent e) {
         int row = roomTable.getSelectedRow();
         if(row == -1) { JOptionPane.showMessageDialog(this, "수정할 객실을 선택하세요."); return; }
 
         String curNum = (String) tableModel.getValueAt(row, 0);
         String curGrade = (String) tableModel.getValueAt(row, 1);
+        // 가격 문자열에서 쉼표 등 제거하고 숫자만 남김
         String curPriceStr = ((String) tableModel.getValueAt(row, 2)).replaceAll("[^0-9]", "");
 
-        JTextField numF = new JTextField(curNum);
-        numF.setEditable(false); // ID는 수정 불가
+        // 1. 입력 컴포넌트 생성
+        JTextField numF = new JTextField(curNum); numF.setEditable(false);
+
         String[] grades = {"스탠다드", "디럭스", "스위트"};
         JComboBox<String> gradeBox = new JComboBox<>(grades);
         gradeBox.setSelectedItem(curGrade);
+
         JTextField priceF = new JTextField(curPriceStr);
 
-        Object[] message = { "객실 번호 (수정불가):", numF, "등급:", gradeBox, "가격:", priceF };
+        // ⭐ [NEW] 사유 입력 필드 생성
+        JTextField reasonF = new JTextField();
 
-        if(JOptionPane.showConfirmDialog(this, message, "객실 수정", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+        Object[] message = {
+                "객실 번호 (수정불가):", numF,
+                "등급:", gradeBox,
+                "가격 (숫자만):", priceF,
+                "변경 사유 (필수):", reasonF // 화면에 추가
+        };
+
+        int option = JOptionPane.showConfirmDialog(this, message, "객실 정보 수정", JOptionPane.OK_CANCEL_OPTION);
+
+        if (option == JOptionPane.OK_OPTION) {
             try {
                 int price = Integer.parseInt(priceF.getText().trim());
-                if(controller.updateRoom(curNum, (String)gradeBox.getSelectedItem(), price)) {
-                    loadData();
-                    JOptionPane.showMessageDialog(this, "수정되었습니다.");
+                String reason = reasonF.getText().trim();
+
+                // ⭐ 유효성 검사: 사유가 비어있으면 진행 안 함
+                if (reason.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "변경 사유를 반드시 입력해야 합니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
+                    return;
                 }
-            } catch(Exception ex) { JOptionPane.showMessageDialog(this, "가격은 숫자여야 합니다."); }
+
+                // 컨트롤러 호출 (reason 포함)
+                if(controller.updateRoom(curNum, (String)gradeBox.getSelectedItem(), price, reason)) {
+                    loadData(); // 테이블 새로고침
+                    JOptionPane.showMessageDialog(this, "수정이 완료되었습니다.");
+                } else {
+                    JOptionPane.showMessageDialog(this, "수정 실패: 서버 오류");
+                }
+            } catch(Exception ex) {
+                JOptionPane.showMessageDialog(this, "가격은 숫자여야 합니다.");
+            }
         }
     }
 

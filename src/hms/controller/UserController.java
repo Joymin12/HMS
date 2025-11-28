@@ -131,6 +131,12 @@ public class UserController {
         return false;
     }
 
+    /**
+     * ⭐ [NEW] 현재 로그인된 사용자의 세션 정보를 저장합니다. (LoginController에서 사용)
+     */
+    public void setCurrentUser(User user) {
+        this.currentlyLoggedInUser = user;
+    }
 
     public void logout() {
         this.currentlyLoggedInUser = null;

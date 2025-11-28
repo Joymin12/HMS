@@ -6,18 +6,16 @@ import java.net.Socket;
 import java.util.*;
 
 public class RoomServiceController {
-    private final String SERVER_IP = "110.46.46.92";
+    private final String SERVER_IP = "127.0.0.1";
     private final int SERVER_PORT = 5000;
 
     private NetworkMessage send(String cmd, Object data) {
         try (Socket s = new Socket(SERVER_IP, SERVER_PORT);
              ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(s.getInputStream())) {
-
             out.writeObject(new NetworkMessage(cmd, data));
             out.flush();
             return (NetworkMessage) in.readObject();
-
         } catch (Exception e) {
             return new NetworkMessage(false, "통신오류", null);
         }

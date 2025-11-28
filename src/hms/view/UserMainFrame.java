@@ -2,6 +2,7 @@ package hms.view;
 
 import hms.controller.UserController;
 import hms.controller.ReservationController;
+import hms.model.User; // [추가] User 모델 임포트
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -16,21 +17,22 @@ public class UserMainFrame extends JFrame {
     private final int HEIGHT = 600;
 
     private final UserController userController;
-    private final String userName;
-    // ReservationController 필드는 내부에서 생성합니다.
-    private final ReservationController reservationController = new ReservationController();
+    private User currentUser; // [변경] 이름(String) 대신 User 객체 저장
 
-    // [추가] 인증된 객실 번호를 임시로 저장할 필드
+    private final ReservationController reservationController = new ReservationController();
     private String authenticatedRoomNumber = null;
+
+    // [추가] 정보를 수정했을 때 갱신하기 위해 필드로 승격
+    private JLabel welcomeLabel;
 
     /**
      * 생성자
-     * ⭐ [핵심 수정] UserController만 인수로 받도록 생성자 통일
+     * ⭐ [핵심 수정] String userName -> User user 객체 전체를 받도록 변경
+     * (LoginFrame에서 이 창을 열 때 user 객체를 넘겨줘야 합니다)
      */
-    public UserMainFrame(String userName, UserController userController) {
-        this.userName = userName;
+    public UserMainFrame(User user, UserController userController) {
+        this.currentUser = user;
         this.userController = userController;
-        // this.reservationController는 필드에서 이미 초기화됨
 
         setTitle(TITLE);
         setSize(WIDTH, HEIGHT);
@@ -38,22 +40,19 @@ public class UserMainFrame extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- 1. 헤더 (로그아웃/탈퇴 버튼 포함) ---
-        JPanel headerPanel = createHeaderPanel();
-        add(headerPanel, BorderLayout.NORTH);
+        // --- 1. 헤더 ---
+        add(createHeaderPanel(), BorderLayout.NORTH);
 
-        // --- 2. 메인 메뉴 패널 ---
-        JPanel mainPanel = createMainPanel(userName);
-        add(mainPanel, BorderLayout.CENTER);
+        // --- 2. 메인 메뉴 ---
+        add(createMainPanel(), BorderLayout.CENTER);
 
         // --- 3. 푸터 ---
-        JPanel footerPanel = createFooterPanel();
-        add(footerPanel, BorderLayout.SOUTH);
+        add(createFooterPanel(), BorderLayout.SOUTH);
 
         setVisible(true);
     }
 
-    // --- 1. 헤더 (회원탈퇴 버튼 추가) ---
+    // --- 1. 헤더 ---
     private JPanel createHeaderPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(new Color(30, 144, 255));
@@ -64,16 +63,18 @@ public class UserMainFrame extends JFrame {
         titleLabel.setForeground(Color.WHITE);
         panel.add(titleLabel, BorderLayout.WEST);
 
-        // --- 로그아웃/계정탈퇴 버튼 ---
-        JButton logoutButton = new JButton("로그아웃");
-        JButton deleteAccountButton = new JButton("계정탈퇴");
+        JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonGroupPanel.setOpaque(false);
 
+        JButton logoutButton = new JButton("로그아웃");
         logoutButton.setBackground(Color.WHITE);
         logoutButton.setForeground(new Color(30, 144, 255));
+
+        JButton deleteAccountButton = new JButton("계정탈퇴");
         deleteAccountButton.setBackground(Color.RED);
         deleteAccountButton.setForeground(Color.WHITE);
 
-        // --- 1-1. 로그아웃 액션 ---
+        // 로그아웃
         logoutButton.addActionListener(e -> {
             if (userController != null) userController.logout();
             JOptionPane.showMessageDialog(null, "로그아웃 되었습니다.");
@@ -81,52 +82,52 @@ public class UserMainFrame extends JFrame {
             new LoginFrame().setVisible(true);
         });
 
-        // --- 1-2. 회원탈퇴 액션 ---
+        // 계정 탈퇴
         deleteAccountButton.addActionListener(e -> {
             int result = JOptionPane.showConfirmDialog(
                     null, "정말로 계정을 탈퇴하시겠습니까?\n모든 정보가 삭제됩니다.", "계정 탈퇴 확인",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
             if (result == JOptionPane.YES_OPTION) {
+                // UserController에 deleteAccount(userId) 메서드가 필요할 수 있음
                 boolean deleteSuccess = userController.deleteAccount();
 
                 if (deleteSuccess) {
-                    JOptionPane.showMessageDialog(null, "회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.");
+                    JOptionPane.showMessageDialog(null, "회원 탈퇴가 완료되었습니다.");
                     dispose();
-                    new LoginFrame().setVisible(true); // 로그인 화면으로 복귀
+                    // new LoginFrame().setVisible(true);
                 } else {
-                    JOptionPane.showMessageDialog(null, "탈퇴 중 오류가 발생했습니다. (예: 활성화된 예약이 남아있습니다)");
+                    JOptionPane.showMessageDialog(null, "탈퇴 중 오류가 발생했습니다.");
                 }
             }
         });
 
-        JPanel buttonGroupPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        buttonGroupPanel.setOpaque(false);
         buttonGroupPanel.add(logoutButton);
         buttonGroupPanel.add(deleteAccountButton);
-
         panel.add(buttonGroupPanel, BorderLayout.EAST);
         return panel;
     }
 
-
-    // --- 2. 메인 패널 (고객 메뉴 포함) ---
-    private JPanel createMainPanel(String userName) {
+    // --- 2. 메인 패널 ---
+    private JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 20));
         panel.setBackground(new Color(240, 248, 255));
         panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-        // 환영 메시지
+        // 환영 메시지 패널
         JPanel welcomePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         welcomePanel.setBackground(Color.WHITE);
         welcomePanel.setBorder(BorderFactory.createLineBorder(new Color(30, 144, 255), 2));
-        String welcomeText = "<html><h2 style='margin-bottom: 4px; color:#3090ff;'>환영합니다, " + userName + " 고객님!</h2><p>호텔 예약 및 서비스 이용이 가능합니다.</p></html>";
-        JLabel welcomeLabel = new JLabel(welcomeText);
+
+        // [수정] 필드로 선언된 welcomeLabel 사용
+        welcomeLabel = new JLabel();
+        updateWelcomeMessage(); // 메시지 설정 메서드 분리
+
         welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         welcomePanel.add(welcomeLabel);
         panel.add(welcomePanel, BorderLayout.NORTH);
 
-        // --- 4개 버튼 그리드 (2행 2열) ---
+        // 메뉴 버튼 그리드
         JPanel gridPanel = new JPanel(new GridLayout(2, 2, 20, 20));
         gridPanel.setOpaque(false);
 
@@ -135,7 +136,7 @@ public class UserMainFrame extends JFrame {
         JButton btnRoomService = createMenuButton("🍽️ 룸서비스 주문");
         JButton btnMyInfo = createMenuButton("👤 내 정보 관리");
 
-        // --- 액션 리스너 연결 ---
+        // [이벤트 연결]
         btnReservation.addActionListener(e -> {
             this.setVisible(false);
             // UserController, ReservationController 모두 전달
@@ -144,72 +145,51 @@ public class UserMainFrame extends JFrame {
 
         btnReservationCheck.addActionListener(e -> {
             this.setVisible(false);
-            new ReservationCheckFrame(this, this.reservationController);
+            new ReservationCheckFrame(this, this.reservationController, false);
         });
 
-        // ⭐⭐ 룸서비스 주문 액션: 인증 단계를 먼저 거칩니다.
+        // 룸서비스 주문 (기존 코드 유지)
         btnRoomService.addActionListener(e -> {
-
             JTextField idField = new JTextField(6);
             JTextField roomField = new JTextField(5);
-
             JPanel authPanel = new JPanel(new BorderLayout(10, 10));
-            authPanel.add(new JLabel("<html><h3>객실 인증</h3>룸서비스를 이용하려면 예약 ID 6자리와 객실 번호를 입력해주세요.</html>"), BorderLayout.NORTH);
-
+            authPanel.add(new JLabel("<html><h3>객실 인증</h3>예약 ID 6자리와 객실 번호를 입력해주세요.</html>"), BorderLayout.NORTH);
             JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-            inputPanel.add(new JLabel("인증번호 (6자리):"));
-            inputPanel.add(idField);
-            inputPanel.add(new JLabel("객실번호:"));
-            inputPanel.add(roomField);
-
+            inputPanel.add(new JLabel("인증번호 (6자리):")); inputPanel.add(idField);
+            inputPanel.add(new JLabel("객실번호:")); inputPanel.add(roomField);
             authPanel.add(inputPanel, BorderLayout.CENTER);
 
-            int result = JOptionPane.showConfirmDialog(this,
-                    authPanel,
-                    "🍽️ 룸서비스 객실 인증",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE);
-
+            int result = JOptionPane.showConfirmDialog(this, authPanel, "룸서비스 인증", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
-                String lastSixDigits = idField.getText().trim();
-                String roomNumber = roomField.getText().trim();
-
-                if (!lastSixDigits.matches("\\d{6}") || roomNumber.isEmpty()) {
-                    JOptionPane.showMessageDialog(this,
-                            "인증번호는 6자리 숫자, 객실 번호는 필수 입력입니다.",
-                            "입력 오류", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                boolean isAuthenticated = reservationController.validateReservationAndCheckIn(lastSixDigits, roomNumber);
-
-                if (isAuthenticated) {
-                    this.authenticatedRoomNumber = roomNumber;
-
-                    // ⭐ RoomServiceOrderPanel이 UserMainFrame을 부모로 받도록 수정 필요
-                    JDialog dialog = new JDialog(this, "🍽️ 룸서비스 주문", true);
-                    JScrollPane scrollPane = new JScrollPane(new RoomServiceOrderPanel(this));
-                    dialog.setContentPane(scrollPane);
+                String lastSix = idField.getText().trim();
+                String roomNum = roomField.getText().trim();
+                if (reservationController.validateReservationAndCheckIn(lastSix, roomNum)) {
+                    this.authenticatedRoomNumber = roomNum;
+                    JDialog dialog = new JDialog(this, "룸서비스 주문", true);
+                    dialog.setContentPane(new JScrollPane(new RoomServiceOrderPanel(this)));
                     dialog.setSize(750, 700);
                     dialog.setLocationRelativeTo(this);
                     dialog.setVisible(true);
-
                     this.authenticatedRoomNumber = null;
-
                 } else {
-                    JOptionPane.showMessageDialog(this,
-                            "인증 정보가 일치하지 않거나 해당 객실이 체크인 상태가 아닙니다.",
-                            "인증 실패", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "인증 실패: 정보 불일치 또는 미체크인 상태", "오류", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
 
-
-        // 내 정보 관리 액션 (임시 메시지)
+        // ⭐ [핵심] 내 정보 관리 버튼 연결
         btnMyInfo.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "내 정보 관리 화면은 준비 중입니다.", "기능 안내", JOptionPane.INFORMATION_MESSAGE);
-        });
+            // 1. 고객용 수정 창 띄우기 (currentUser 전달)
+            UserModifyDialog dialog = new UserModifyDialog(this, currentUser);
+            // (dialog 내부에서 setVisible(true)가 호출되어 모달로 뜸)
 
+            // 2. 창이 닫힌 후 수정되었는지 확인
+            if (dialog.isUpdated()) {
+                // 상단 환영 메시지 갱신 (이름이 바뀌었을 수 있으므로)
+                updateWelcomeMessage();
+                JOptionPane.showMessageDialog(this, "회원 정보가 갱신되었습니다.");
+            }
+        });
 
         gridPanel.add(btnReservation);
         gridPanel.add(btnReservationCheck);
@@ -220,7 +200,6 @@ public class UserMainFrame extends JFrame {
         return panel;
     }
 
-    // --- 3. 푸터 ---
     private JPanel createFooterPanel() {
         JPanel panel = new JPanel();
         panel.setBackground(new Color(31, 41, 55));
@@ -231,7 +210,6 @@ public class UserMainFrame extends JFrame {
         return panel;
     }
 
-    // --- 4. 헬퍼 메소드 (버튼 스타일) ---
     private JButton createMenuButton(String title) {
         JButton button = new JButton();
         button.setLayout(new BorderLayout(10, 10));
@@ -244,21 +222,16 @@ public class UserMainFrame extends JFrame {
         return button;
     }
 
-    // =================================================================
-    // ⭐ [추가] 룸서비스 주문을 위한 Getter 메서드
-    // =================================================================
-
-    /**
-     * 룸서비스 주문 시 인증된 객실 번호를 반환합니다.
-     */
-    public String getAuthenticatedRoomNumber() {
-        return this.authenticatedRoomNumber;
+    // 환영 메시지 업데이트 헬퍼 메서드
+    private void updateWelcomeMessage() {
+        String name = (currentUser != null) ? currentUser.getName() : "고객";
+        welcomeLabel.setText("<html><h2 style='margin-bottom: 4px; color:#3090ff;'>환영합니다, " + name + " 고객님!</h2><p>호텔 예약 및 서비스 이용이 가능합니다.</p></html>");
     }
 
-    /**
-     * RoomServiceOrderPanel이 ReservationController를 호출할 수 있도록 합니다.
-     */
-    public ReservationController getReservationController() {
-        return reservationController;
-    }
+    // Getters
+    public String getAuthenticatedRoomNumber() { return this.authenticatedRoomNumber; }
+    public ReservationController getReservationController() { return reservationController; }
+
+    // [추가] 현재 로그인한 유저 정보 반환 (필요시 사용)
+    public User getCurrentUser() { return currentUser; }
 }
