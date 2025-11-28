@@ -11,6 +11,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
@@ -110,7 +112,14 @@ public class HMSServer {
                             String[] vd = ((String)req.getData()).split(",");
                             String inputCode = vd[0];
                             String inputRoom = vd[1];
-                            res = new NetworkMessage(resMgr.validateReservationAndCheckIn(inputCode, inputRoom), "검증", null);
+
+                            // [수정] validateReservationAndCheckIn 대신 validateRoomServiceAccess 호출
+                            // (상태 변경 없이, 투숙 중인지 확인만 하는 메서드)
+                            res = new NetworkMessage(resMgr.validateRoomServiceAccess(inputCode, inputRoom), "검증", null);
+                            break;
+                        case "RES_GET_ALL":
+                            // ReservationDataManager에 구현된 readAllReservations() 메서드를 호출합니다.
+                            res = new NetworkMessage(true, "전체조회", resMgr.readAllReservations());
                             break;
 
                         // [3] 룸서비스 관리
@@ -151,43 +160,69 @@ public class HMSServer {
                             List<String[]> resList = resMgr.getReservationsByPeriod(start, end);
                             List<String[]> rsList = rsMgr.getPaidRequestsByPeriod(start, end);
 
-                            long roomRev = 0;       // 순수 객실 매출
-                            long fnbRev = 0;        // 룸서비스 매출
-                            long lateFeeRev = 0;    // ⭐ [NEW] 순수 지연료 매출 (분리됨)
+                            long roomRev = 0;
+                            long fnbRev = 0;
+                            long lateFeeRev = 0;
                             long occNights = 0;
 
                             int totalRooms = 24;
                             LocalDate sDate = LocalDate.parse(start), eDate = LocalDate.parse(end);
-                            long days = ChronoUnit.DAYS.between(sDate, eDate) + 1;
+                            long days = ChronoUnit.DAYS.DAYS.between(sDate, eDate) + 1;
                             long capacity = totalRooms * days;
 
                             for (String[] r : resList) {
                                 try {
-                                    if(r.length > 12 && r[12].equals("CHECKED_OUT")) {
-                                        // 1. 객실 기본료만 더함 (인덱스 10)
-                                        roomRev += Long.parseLong(r[10]);
+                                    if (r.length > 12) {
+                                        String status = r[12];
+                                        String paymentMethod = r[11]; // 인덱스 11: 결제 방식
+                                        boolean shouldCountRevenue = false;
 
-                                        // 2. ⭐ [수정됨] 지연료는 lateFeeRev에만 더함 (객실료와 섞지 않음)
-                                        if (r.length > 15) {
+                                        // ⭐ [최종 매출 집계 로직]
+                                        // Rule 1: CHECKED_IN/OUT은 무조건 매출로 인정
+                                        if (status.equals("CHECKED_IN") || status.equals("CHECKED_OUT")) {
+                                            shouldCountRevenue = true;
+                                        }
+                                        // Rule 2: PENDING 상태는 '카드결제'인 경우만 잠정 매출로 인정
+                                        else if (status.equals("PENDING")) {
+                                            if (paymentMethod.equals("카드결제")) {
+                                                shouldCountRevenue = true;
+                                            }
+                                        }
+
+                                        if (shouldCountRevenue) {
+                                            // 1. 객실 기본료만 더함 (인덱스 10)
+                                            try {
+                                                roomRev += Long.parseLong(r[10]);
+                                            } catch (NumberFormatException e) {}
+                                        }
+
+                                        // 2. 지연료는 'CHECKED_OUT'일 때만 계산
+                                        if (status.equals("CHECKED_OUT") && r.length > 15) {
                                             String lfStr = r[15].trim();
                                             if (!lfStr.isEmpty()) {
                                                 try {
-                                                    lateFeeRev += Long.parseLong(lfStr); // 여기에 합산!
+                                                    lateFeeRev += Long.parseLong(lfStr);
                                                 } catch (NumberFormatException nfe) {}
                                             }
                                         }
                                     }
 
-                                    // 점유율 계산
-                                    LocalDate rIn = LocalDate.parse(r[3]), rOut = LocalDate.parse(r[4]);
+                                    // [점유율 계산 로직] (기존 로직 유지)
+                                    LocalDate rIn = LocalDate.parse(r[3]);
+                                    LocalDate rOut = LocalDate.parse(r[4]);
                                     LocalDate os = rIn.isAfter(sDate) ? rIn : sDate;
                                     LocalDate oe = rOut.isBefore(eDate) ? rOut : eDate;
-                                    if(!os.isAfter(oe)) {
+
+                                    if (!os.isAfter(oe)) {
                                         long n = ChronoUnit.DAYS.between(os, oe);
-                                        if(!os.equals(rOut)) n+=1;
+                                        if (oe.isBefore(rOut)) {
+                                            n += 1;
+                                        }
                                         occNights += Math.max(0, n);
                                     }
-                                } catch(Exception e){}
+                                } catch(Exception e) {
+                                    continue;
+                                }
                             }
 
                             // 룸서비스 합산
@@ -196,10 +231,9 @@ public class HMSServer {
                             double occRate = (capacity>0) ? ((double)occNights/capacity)*100 : 0;
 
                             Map<String, Object> rpt = new HashMap<>();
-                            rpt.put("RoomRevenue", roomRev);       // 순수 객실료
-                            rpt.put("FNBRevenue", fnbRev);         // 순수 룸서비스
-                            rpt.put("LateFeeRevenue", lateFeeRev); // 순수 지연료
-                            // ⭐ [수정됨] 총 매출 = 객실 + 룸서비스 + 지연료
+                            rpt.put("RoomRevenue", roomRev);
+                            rpt.put("FNBRevenue", fnbRev);
+                            rpt.put("LateFeeRevenue", lateFeeRev);
                             rpt.put("TotalRevenue", roomRev + fnbRev + lateFeeRev);
 
                             rpt.put("OccupancyRate", occRate);
@@ -209,18 +243,36 @@ public class HMSServer {
                             res = new NetworkMessage(true, "보고서", rpt);
                             break;
 
+                        // ========================================================
                         // [5] 객실 및 가격 관리
+                        // ========================================================
                         case "ROOM_GET_ALL":
                             res = new NetworkMessage(true, "조회", roomMgr.getAllRooms());
                             break;
+
+                        // ⭐ [NEW] 예약 화면에서 가격 물어볼 때 사용
+                        case "ROOM_GET_PRICE":
+                            String targetRoom = (String) req.getData();
+                            int currentPrice = roomMgr.getRoomPrice(targetRoom);
+                            res = new NetworkMessage(true, "가격확인", currentPrice);
+                            break;
+
                         case "ROOM_ADD":
                             Map<String, Object> ra = (Map<String, Object>) req.getData();
                             res = new NetworkMessage(roomMgr.addRoom((String)ra.get("roomNum"), (String)ra.get("grade"), (Integer)ra.get("price")), "추가", null);
                             break;
+
+                        // ⭐ [수정] 사유(reason)까지 받아서 처리하도록 변경
                         case "ROOM_UPDATE":
                             Map<String, Object> ru = (Map<String, Object>) req.getData();
-                            res = new NetworkMessage(roomMgr.updateRoom((String)ru.get("roomNum"), (String)ru.get("grade"), (Integer)ru.get("price")), "수정", null);
+                            String rNum = (String) ru.get("roomNum");
+                            String rGrade = (String) ru.get("grade");
+                            int rPrice = (Integer) ru.get("price");
+                            String rReason = (String) ru.get("reason");
+
+                            res = new NetworkMessage(roomMgr.updateRoom(rNum, rGrade, rPrice, rReason), "수정", null);
                             break;
+
                         case "ROOM_DELETE":
                             res = new NetworkMessage(roomMgr.deleteRoom((String)req.getData()), "삭제", null);
                             break;
