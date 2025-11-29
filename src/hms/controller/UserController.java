@@ -14,15 +14,19 @@ public class UserController {
 
     // 통신 헬퍼 메소드 (sendRequest)
     private NetworkMessage sendRequest(String command, Object data) {
+        // 소켓 생성 및 서버 연결(IP, Port)
         try (Socket socket = new Socket(serverIp, serverPort);
+             // 출력 스트림 생성
              ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             //입력 스트림 생성
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
-
+            //객체 전송
             out.writeObject(new NetworkMessage(command, data));
             out.flush();
+            //응답 수신
             return (NetworkMessage) in.readObject();
 
-        } catch (Exception e) {
+        } catch (Exception e) { // 예외 처리
             System.err.println("서버 통신 오류: " + e.getMessage());
             return new NetworkMessage(false, "통신 오류", null);
         }

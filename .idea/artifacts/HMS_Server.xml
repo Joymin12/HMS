@@ -2,6 +2,9 @@
   <artifact type="jar" name="HMS_Server">
     <output-path>$PROJECT_DIR$/out/artifacts/HMS_Server</output-path>
     <root id="archive" name="HMS_Server.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/src.server_meta/META-INF/MANIFEST.MF" />
+      </element>
       <element id="module-output" name="HMS" />
       <element id="extracted-dir" path="$PROJECT_DIR$/libs/jcalendar-1.4.jar" path-in-jar="/" />
     </root>

@@ -91,14 +91,17 @@ public class UserDataManager {
 
     // 1. ID로 사용자 찾기 (로그인 시 사용 - 매우 빨라짐)
     public User findUserById(String id) {
+        //다중 접속 환경을 고려하여 동기화된 리스트에서 검색 수행
         synchronized (userCache) {
             for (User user : userCache) {
+                //메모리에 로드된 사용 객체의 ID와 요청된 ID 대조
                 if (user.getId().equals(id)) {
                     return user;
+                    //일치하는 사용자 객체 반환
                 }
             }
         }
-        return null;
+        return null; // 일치하지 않는 사용자일 경우 null 반환
     }
 
     // 2. ID 중복 확인
