@@ -23,7 +23,9 @@ public class UserAddDialog extends JDialog {
     private final JTextField nameField = new JTextField(15);
     private final JTextField numberField = new JTextField(15);
     private final JTextField ageField = new JTextField(15);
-    private final JComboBox<String> roleComboBox = new JComboBox<>(new String[]{"user", "admin"});
+
+    // ⭐ [수정] JComboBox에 "csr" 권한 추가
+    private final JComboBox<String> roleComboBox = new JComboBox<>(new String[]{"user", "admin", "csr"});
 
     public UserAddDialog(AdminUserManagementFrame parentFrame, UserController userController) {
         super(parentFrame, "사용자 추가", true);

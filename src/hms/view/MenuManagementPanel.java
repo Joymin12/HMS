@@ -1,7 +1,7 @@
 package hms.view;
 
 import hms.controller.ReservationController;
-import hms.controller.RoomServiceController; // 변경
+import hms.controller.RoomServiceController; // ⭐ [NEW] RoomServiceController 임포트
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -11,13 +11,16 @@ import java.util.List;
 public class MenuManagementPanel extends JPanel {
 
     private final RoomServiceOrderFrame parentFrame;
-    private final RoomServiceController roomServiceController; // 변경
+    // ⭐ [CRITICAL] 필드 타입 변경: Menu 관리는 RoomServiceController의 책임입니다.
+    private final RoomServiceController roomServiceController;
     private JTable menuTable;
     private DefaultTableModel tableModel;
 
-    public MenuManagementPanel(RoomServiceOrderFrame parentFrame, ReservationController controller) {
+    // ⭐ [CRITICAL] 생성자 인자 변경: ReservationController 대신 RoomServiceController를 받습니다.
+    public MenuManagementPanel(RoomServiceOrderFrame parentFrame, RoomServiceController roomServiceController) {
         this.parentFrame = parentFrame;
-        this.roomServiceController = new RoomServiceController(); // 변경
+        // ⭐ [수정] 외부에서 주입받은 Controller를 사용합니다.
+        this.roomServiceController = roomServiceController;
 
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));

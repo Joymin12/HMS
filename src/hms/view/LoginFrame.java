@@ -75,7 +75,7 @@ public class LoginFrame extends JFrame {
                 String id = idField.getText();
                 String password = new String(pwField.getPassword());
 
-                // ⭐ [핵심 수정] LoginController에게 인증 및 라우팅 책임을 위임
+                // [핵심 수정] LoginController에게 인증 및 라우팅 책임을 위임
                 if (loginController.handleLogin(id, password)) {
                     dispose(); // 로그인 성공 시 창 닫기 (LoginController가 MainFrame을 띄움)
                 }

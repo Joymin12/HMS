@@ -2,6 +2,7 @@ package hms.view;
 
 import hms.controller.UserController;
 import hms.model.User;
+import hms.network.NetworkMessage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -105,7 +106,8 @@ public class UserModifyDialog extends JDialog {
 
         // 6. 권한 (고객 모드에서는 비활성화)
         panel.add(new JLabel("권한:", SwingConstants.RIGHT));
-        String[] roles = {"admin", "user"};
+        // ⭐ [수정] "csr" 역할 추가
+        String[] roles = {"admin", "csr", "user"};
         roleComboBox = new JComboBox<>(roles);
 
         // ⭐ 본인 수정 모드라면 권한 변경 불가

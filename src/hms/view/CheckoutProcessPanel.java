@@ -5,6 +5,8 @@ import hms.controller.RoomServiceController;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.text.NumberFormat; // ⭐ 금액 포맷용 임포트
+import java.util.Locale;       // ⭐ 로케일 임포트
 
 public class CheckoutProcessPanel extends JPanel {
 
@@ -20,11 +22,12 @@ public class CheckoutProcessPanel extends JPanel {
     // [추가] 지연료 계산을 위해 체크아웃 예정 날짜 인덱스(4)가 필요함
     private static final int RES_IDX_SCHED_CHECKOUT_DATE = 4;
 
-    public CheckoutProcessPanel(CheckInOutFrame parentFrame, ReservationController controller, String[] reservationData) {
+    public CheckoutProcessPanel(CheckInOutFrame parentFrame, ReservationController controller, RoomServiceController serviceController, String[] reservationData) {
         this.parentFrame = parentFrame;
         this.controller = controller;
         this.reservationData = reservationData;
-        this.serviceController = new RoomServiceController();
+        // ⭐ [수정] 외부에서 주입받은 serviceController를 사용
+        this.serviceController = serviceController;
 
         setLayout(new BorderLayout(15, 15));
         setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
@@ -58,18 +61,19 @@ public class CheckoutProcessPanel extends JPanel {
     private void loadAndDisplayBill() {
         String roomNumber = reservationData[RES_IDX_ROOM_NUM];
 
-        // 1. 룸서비스 총액 계산 (기존 로직 유지)
+        // 1. 룸서비스 총액 계산
         long serviceCost = calculateRoomServiceCost(roomNumber);
 
-        // 2. [핵심 변경] 컨트롤러에게 청구서 텍스트 생성 요청
-        // (내부적으로 지연료 계산, 숙박료 제외 총액 합산, 텍스트 포맷팅을 수행함)
-        String billText = controller.generateCheckoutBillText(reservationData, (int)serviceCost);
+        // ⭐ [NEW] 룸서비스 상세 내역 텍스트 생성
+        String serviceDetailsText = getRoomServiceDetailsText(roomNumber);
 
-        // 3. 룸서비스 상세 내역을 추가하고 싶다면, 컨트롤러 텍스트 뒤에 붙이거나
-        // 컨트롤러 텍스트 생성 로직을 수정해야 하지만, 일단은 깔끔하게 컨트롤러 결과 사용
-        // (만약 상세 내역이 꼭 필요하면 billText 뒤에 getServiceDetails() 결과를 append 할 수 있음)
+        // 2. [핵심 변경] 컨트롤러에게 기본 청구서 텍스트 생성 요청
+        String baseBillText = controller.generateCheckoutBillText(reservationData, (int)serviceCost);
 
-        billArea.setText(billText);
+        // 3. ⭐ [CRITICAL FIX] 최종 텍스트 합치기: "[룸서비스 상세]" 태그를 실제 상세 내역으로 대체
+        String finalBillText = baseBillText.replace("[룸서비스 상세]", serviceDetailsText);
+
+        billArea.setText(finalBillText);
 
         // 커서를 맨 위로 (내용이 길 경우 스크롤 위로)
         billArea.setCaretPosition(0);
@@ -77,6 +81,7 @@ public class CheckoutProcessPanel extends JPanel {
 
     private long calculateRoomServiceCost(String roomNumber) {
         long total = 0;
+        // 완료 상태인 요청만 가져옵니다.
         List<String[]> reqs = serviceController.getRequestsByStatus("완료");
         for (String[] req : reqs) {
             // req[1]: roomNumber, req[3]: price
@@ -86,6 +91,52 @@ public class CheckoutProcessPanel extends JPanel {
         }
         return total;
     }
+
+    /**
+     * ⭐ [NEW HELPER] 룸서비스 상세 내역 텍스트를 생성합니다.
+     */
+    private String getRoomServiceDetailsText(String roomNumber) {
+        StringBuilder sb = new StringBuilder();
+        // 완료 상태인 요청 목록을 가져옵니다.
+        List<String[]> reqs = serviceController.getRequestsByStatus("완료");
+
+        boolean foundItems = false;
+        NumberFormat nf = NumberFormat.getNumberInstance(Locale.KOREA);
+
+        for (String[] req : reqs) {
+            // req[0]: ID, req[1]: roomNumber, req[2]: items list, req[3]: price, req[5]: time
+            if (req[1].equals(roomNumber)) {
+                foundItems = true;
+
+                String requestTime = req[5]; // 요청 시간 (timestamp)
+                String itemsList = req[2]; // ex: "커피 x 2, 샌드위치 x 1"
+
+                // 시간 포맷을 간단하게 변경 (YYYYMMDDHHmmss -> HH:mm)
+                String formattedTime = requestTime.length() >= 12 ? requestTime.substring(8, 10) + ":" + requestTime.substring(10, 12) : requestTime;
+
+                // 줄 바꿈 및 포맷팅: [시간] - 품목 목록 (총액)
+                long price = 0;
+                try { price = Long.parseLong(req[3]); } catch (Exception e) {}
+
+                sb.append(" [")
+                        .append(formattedTime)
+                        .append("] ")
+                        .append(itemsList.replace(";", ", ")) // ";"을 공백이 있는 ","로 변경
+                        // ⭐ [CRITICAL FIX] String.format 대신 문자열 연결 사용
+                        .append(" (")
+                        .append(nf.format(price))
+                        .append("원)")
+                        .append("\n");
+            }
+        }
+
+        if (!foundItems) {
+            sb.append("(상세 내역 없음)\n");
+        }
+
+        return sb.toString();
+    }
+
 
     private void handleCheckoutComplete() {
         String room = reservationData[RES_IDX_ROOM_NUM];

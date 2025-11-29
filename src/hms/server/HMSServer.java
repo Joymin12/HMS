@@ -55,10 +55,12 @@ public class HMSServer {
                         case "LOGIN":
                             String[] login = ((String) req.getData()).split(",");
                             User user = userMgr.findUserById(login[0]);
-                            res = (user != null && user.getPassword().equals(login[1])) ? new NetworkMessage(true, "성공", user) : new NetworkMessage(false, "실패", null);
+                            // ⭐ [평문 비교] 클라이언트에서 평문 비밀번호를 보내므로, 서버도 평문으로 비교
+                            res = (user != null && user.getPassword().equals(login[1])) ? new NetworkMessage(true, "성공", user) : new NetworkMessage(false, "ID 또는 비밀번호가 일치하지 않습니다.", null);
                             break;
                         case "SIGNUP":
                             User newUser = (User) req.getData();
+                            // ⭐ [평문 저장] 클라이언트에서 평문 비밀번호를 보내므로, 해싱 없이 바로 저장
                             if (userMgr.isUserIdExists(newUser.getId())) res = new NetworkMessage(false, "ID중복", 1);
                             else if (userMgr.addUser(newUser)) res = new NetworkMessage(true, "가입성공", 0);
                             else res = new NetworkMessage(false, "저장실패", 2);
@@ -122,6 +124,13 @@ public class HMSServer {
                             // ReservationDataManager에 구현된 readAllReservations() 메서드를 호출합니다.
                             res = new NetworkMessage(true, "전체조회", resMgr.readAllReservations());
                             break;
+                        // ⭐ [NEW] AddRequestPanel에서 요청하는 객실 투숙 상태 확인
+                        case "RES_ROOM_CHECKIN_STATUS":
+                            String roomNumToCheck = (String) req.getData();
+                            // resMgr(ReservationDataManager)에서 투숙 상태 확인 메서드 호출
+                            boolean isCheckedIn = resMgr.isRoomCheckedIn(roomNumToCheck);
+                            res = new NetworkMessage(true, "상태확인", isCheckedIn);
+                            break;
 
                         // [3] 룸서비스 관리
                         case "RS_GET_ALL_MENU": res = new NetworkMessage(true, "메뉴", rsMgr.getAllMenu()); break;
@@ -137,6 +146,7 @@ public class HMSServer {
                             break;
                         case "RS_DELETE_MENU": res = new NetworkMessage(rsMgr.deleteMenuItem((String)req.getData()), "삭제", null); break;
                         case "RS_ADD_REQUEST":
+                            // ⭐ [확인] 클라이언트에서 보낸 Map 데이터를 정확히 파싱합니다.
                             Map<String,Object> ar = (Map<String,Object>)req.getData();
                             res = new NetworkMessage(true, "주문", rsMgr.addServiceRequest((String)ar.get("room"),(String)ar.get("items"),(Long)ar.get("price")));
                             break;

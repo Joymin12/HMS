@@ -7,7 +7,7 @@ import java.util.*;
 
 public class RoomController {
     // 🔧 문제 원인 해결: 110.46.46.92 → 127.0.0.1
-    private final String SERVER_IP = "110.46.46.92";
+    private final String SERVER_IP = "127.0.0.1";
     private final int SERVER_PORT = 5000;
 
     // 공통 전송 메소드

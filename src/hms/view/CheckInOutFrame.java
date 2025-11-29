@@ -1,6 +1,7 @@
 package hms.view;
 
 import hms.controller.ReservationController;
+import hms.controller.RoomServiceController; // ⭐ [NEW] RoomServiceController 임포트
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -16,6 +17,9 @@ public class CheckInOutFrame extends JFrame {
     private final JPanel cardsPanel = new JPanel(cardLayout);
     private final JFrame parentFrame; // AdminMainFrame
     private final ReservationController controller;
+
+    // ⭐ [NEW] RoomServiceController 인스턴스 추가 (체크아웃 패널에 주입할 목적)
+    private final RoomServiceController rsController = new RoomServiceController();
 
     // ⭐ 내부 패널들 (이 필드들은 CheckInProcessPanel에서 사용되지 않으므로, 주입받은 Controller를 사용합니다.)
 
@@ -81,11 +85,15 @@ public class CheckInOutFrame extends JFrame {
             // 메모리 정리: 프로세스 뷰를 제거하여 메모리를 확보할 수 있습니다.
             // cardsPanel.remove(cardsPanel.getComponent(cardsPanel.getComponentCount() - 1));
         }
-        // TODO: 체크아웃 로직 추가 시 CHECK_OUT_PROCESS_VIEW 처리
         // ⭐⭐ [수정] 체크아웃 로직 추가 시 CHECK_OUT_PROCESS_VIEW 처리 ⭐⭐
         else if (viewName.equals(CHECK_OUT_PROCESS_VIEW) && data != null) {
-            // CheckoutProcessPanel을 동적으로 생성하고 추가
-            CheckoutProcessPanel checkoutPanel = new CheckoutProcessPanel(this, controller, data);
+            // CheckoutProcessPanel을 동적으로 생성하고, rsController를 3번째 인수로 전달합니다.
+            CheckoutProcessPanel checkoutPanel = new CheckoutProcessPanel(
+                    this,
+                    controller,      // ReservationController
+                    rsController,    // ⭐ [FIX] RoomServiceController 인스턴스
+                    data             // 예약 데이터
+            );
 
             // 기존 뷰를 제거하고 새 뷰를 추가하여 메모리 효율성을 높일 수 있습니다.
             cardsPanel.add(checkoutPanel, CHECK_OUT_PROCESS_VIEW);

@@ -9,6 +9,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.text.NumberFormat;
+import java.util.Locale;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class ReservationController {
 
@@ -28,7 +32,7 @@ public class ReservationController {
     public static final String STATUS_CHECKED_IN = "CHECKED_IN";
     public static final String STATUS_CHECKED_OUT = "CHECKED_OUT";
 
-    private String serverIp = "110.46.46.92";
+    private String serverIp = "127.0.0.1";
     private int serverPort = 5000;
 
     private NetworkMessage sendRequest(String command, Object data) {
@@ -47,14 +51,33 @@ public class ReservationController {
     }
 
     // ==========================================================
-    // ⭐ [NEW] 1. 실시간 객실 가격 조회 기능 (핵심)
+    // [추가/수정] 1. 객실 및 가격 조회 기능
     // ==========================================================
+
+    /**
+     * 특정 방이 현재 투숙 상태(CHECKED_IN)인지 서버에 확인합니다.
+     * (AddRequestPanel에서 룸서비스 요청 전 유효성 검사를 위해 호출)
+     * @param roomNumber 확인할 객실 번호
+     * @return 투숙 중이면 true, 아니면 false
+     */
+    public boolean isRoomCheckedIn(String roomNumber) { // <--- NEW METHOD: AddRequestPanel에서 호출
+        // 서버에 RES_ROOM_CHECKIN_STATUS 명령을 보내 해당 방의 현재 상태를 확인합니다.
+        NetworkMessage res = sendRequest("RES_ROOM_CHECKIN_STATUS", roomNumber);
+
+        // 서버가 boolean 값을 반환한다고 가정합니다.
+        if (res.isSuccess() && res.getData() instanceof Boolean) {
+            return (Boolean) res.getData();
+        }
+        // 통신 오류나 서버 오류 시 안전하게 false 반환
+        return false;
+    }
+
     /**
      * 서버에 ROOM_GET_PRICE 명령을 보내 현재 1박 가격을 조회합니다.
      * @param roomNumber 조회할 객실 번호
      * @return 1박 가격 (원). 실패 시 0.
      */
-    public int getRoomPrice(String roomNumber) {
+    public int getRoomPrice(String roomNumber) { // <--- NEW METHOD
         // HMSServer의 case "ROOM_GET_PRICE" 호출
         NetworkMessage res = sendRequest("ROOM_GET_PRICE", roomNumber);
 
@@ -66,13 +89,13 @@ public class ReservationController {
     }
 
     /**
-     * ⭐ [NEW] 2. 예약 화면이 최종 가격을 계산할 때 호출하는 메서드
+     * 예약 화면이 최종 가격을 계산할 때 호출하는 메서드
      * 객실 번호와 박수(nights)를 기반으로 최종 숙박 가격을 계산합니다.
      * @param roomNumber 객실 번호
      * @param totalNights 숙박 일수
      * @return 최종 숙박료
      */
-    public long calculateFinalPrice(String roomNumber, int totalNights) {
+    public long calculateFinalPrice(String roomNumber, int totalNights) { // <--- NEW METHOD
         // 1. 서버를 통해 rooms.txt에 저장된 최신 1박 가격을 가져옵니다.
         int pricePerNight = getRoomPrice(roomNumber);
 
@@ -86,13 +109,13 @@ public class ReservationController {
     }
 
     // ==========================================================
-    // ⭐ [NEW] 3. 관리자 전체 조회 기능 추가 (Admin Global View)
+    // [추가] 3. 관리자 전체 조회 기능
     // ==========================================================
     /**
      * [관리자 전용] 모든 예약 목록을 서버에서 조회합니다.
      * (HMSServer의 RES_GET_ALL 명령을 호출합니다.)
      */
-    public List<String[]> getAllReservations() {
+    public List<String[]> getAllReservations() { // <--- NEW METHOD
         NetworkMessage res = sendRequest("RES_GET_ALL", null);
 
         if (res.isSuccess() && res.getData() instanceof List) {
@@ -104,7 +127,7 @@ public class ReservationController {
 
 
     // ==========================================================
-    // (기존 메서드들)
+    // (기존 메서드들 - 생략된 설명은 복원하지 않음)
     // ==========================================================
     public boolean saveReservationToFile(Map<String, Object> data) {
         return sendRequest("RES_SAVE", data).isSuccess();
@@ -119,6 +142,7 @@ public class ReservationController {
     }
 
     public String[] getReservationDetailsById(String reservationId) {
+        // ⭐ [CRITICAL FIX] res 변수 선언 누락 수정
         NetworkMessage res = sendRequest("RES_GET_BY_ID", reservationId);
         if (res.isSuccess()) return (String[]) res.getData();
         return null;
@@ -148,9 +172,9 @@ public class ReservationController {
     }
 
     // ==========================================================
-    // [NEW] 파일에 저장된 지연 요금을 가져오는 메서드 (보고서용)
+    // [추가] 파일에 저장된 지연 요금을 가져오는 메서드 (보고서용)
     // ==========================================================
-    public int getSavedLateFee(String[] reservationData) {
+    public int getSavedLateFee(String[] reservationData) { // <--- NEW METHOD
         // 데이터 길이가 인덱스보다 커야만 읽을 수 있음 (옛날 데이터나 체크인 상태 대비)
         if (reservationData.length > RES_IDX_LATE_FEE) {
             try {
@@ -177,6 +201,12 @@ public class ReservationController {
     // ==========================================================
     // 청구서 텍스트 생성
     // ==========================================================
+    /**
+     * 체크아웃 최종 청구서 포맷 텍스트를 생성합니다.
+     * @param resData 예약 정보 배열
+     * @param roomServiceTotal 룸서비스 총액
+     * @return 템플릿 태그가 포함된 청구서 텍스트
+     */
     public String generateCheckoutBillText(String[] resData, int roomServiceTotal) {
         StringBuilder sb = new StringBuilder();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -216,7 +246,8 @@ public class ReservationController {
         sb.append("룸서비스: ").append(String.format("%,d", roomServiceTotal)).append("원\n");
         sb.append("--------------------\n");
 
-        sb.append("[룸서비스 상세]\n");
+        // ⭐ [핵심 수정] 상세 내역을 대체할 템플릿 태그를 명확히 출력
+        sb.append("[룸서비스 상세]").append("\n");
         if (roomServiceTotal == 0) sb.append("(내역 없음)\n");
 
         sb.append("--------------------\n");

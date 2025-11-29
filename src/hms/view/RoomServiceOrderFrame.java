@@ -1,8 +1,10 @@
 package hms.view;
 
 import hms.controller.ReservationController;
+import hms.controller.RoomServiceController; // ⭐ RoomServiceController 임포트
 import javax.swing.*;
 import java.awt.*;
+
 /**
  * =================================================================
  * [호텔 관리 시스템 - 룸서비스 관리 최상위 창]
@@ -17,14 +19,19 @@ public class RoomServiceOrderFrame extends JFrame {
     private final JFrame adminMainFrame;
     private final ReservationController controller;
 
+    // ⭐ [NEW] RoomServiceController 인스턴스 생성 (외부 인자 수정하지 않음)
+    private final RoomServiceController rsController = new RoomServiceController();
+
     // 상수명을 public static final로 수정하여 외부 접근 오류를 해결했습니다.
-    public static final String MAIN_VIEW = "MainView"; // ⭐ 새롭게 추가된 메인 뷰
+    public static final String MAIN_VIEW = "MainView"; // 메인 선택 뷰
     public static final String REQUESTS_VIEW = "RequestsView";
     public static final String MENU_MANAGE_VIEW = "MenuManageView";
+    public static final String ADD_REQUEST_VIEW = "AddRequestView"; // 요청 추가 뷰 상수 정의
 
+    // ⭐ [ORIGINAL] 생성자 매개변수 유지 (수정 안 함)
     public RoomServiceOrderFrame(JFrame adminMainFrame, ReservationController controller) {
         this.adminMainFrame = adminMainFrame;
-        this.controller = controller;
+        this.controller = controller; // ReservationController (객실 유효성 검사용)
 
         setTitle("🍽️ 룸서비스 관리");
         setSize(800, 600);
@@ -32,14 +39,20 @@ public class RoomServiceOrderFrame extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         // 1. 패널 생성
-        RoomServiceMainPanel mainPanel = new RoomServiceMainPanel(this); // ⭐ 메인 선택 패널
-        ServiceRequestPanel requestPanel = new ServiceRequestPanel(this, controller);
-        MenuManagementPanel menuPanel = new MenuManagementPanel(this, controller);
+        RoomServiceMainPanel mainPanel = new RoomServiceMainPanel(this); // 메인 선택 패널
+
+        // ServiceRequestPanel과 MenuManagementPanel은 rsController를 사용합니다.
+        ServiceRequestPanel requestPanel = new ServiceRequestPanel(this, rsController);
+        MenuManagementPanel menuPanel = new MenuManagementPanel(this, rsController);
+
+        // ⭐ [CRITICAL] AddRequestPanel 생성: ReservationController와 rsController 모두 전달
+        AddRequestPanel addRequestPanel = new AddRequestPanel(this, controller, rsController);
 
         // 2. CardLayout에 추가
-        cardsPanel.add(mainPanel, MAIN_VIEW); // ⭐ 메인 패널을 가장 먼저 추가
+        cardsPanel.add(mainPanel, MAIN_VIEW); // 메인 패널을 가장 먼저 추가
         cardsPanel.add(requestPanel, REQUESTS_VIEW);
         cardsPanel.add(menuPanel, MENU_MANAGE_VIEW);
+        cardsPanel.add(addRequestPanel, ADD_REQUEST_VIEW); // ⭐ 요청 추가 패널 추가
 
         add(cardsPanel, BorderLayout.CENTER);
 

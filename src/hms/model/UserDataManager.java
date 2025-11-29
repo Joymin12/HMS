@@ -64,7 +64,8 @@ public class UserDataManager {
 
     // --- [내부 메서드] 메모리 -> 파일 저장 (덮어쓰기) ---
     private boolean saveMemoryToFile() {
-        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filePath, false)))) {
+        // ⭐ [핵심 수정] PrintWriter 생성자에 true를 추가하여 autoFlush 활성화
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(filePath, false)), true)) {
             synchronized (userCache) { // 저장 중엔 다른 작업 대기
                 for (User user : userCache) {
                     String csvLine = String.join(delimiter,
@@ -78,7 +79,7 @@ public class UserDataManager {
                     out.println(csvLine);
                 }
             }
-            return true;
+            return true; // 자동 플러시로 인해 즉시 저장됩니다.
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -114,6 +115,7 @@ public class UserDataManager {
         // 메모리에 먼저 추가
         userCache.add(user);
         // 그 다음 파일에 저장
+        // ⭐ 메모리에 추가한 직후이므로, 캐시에서 바로 조회하면 새로 가입한 사용자가 보입니다.
         return saveMemoryToFile();
     }
 
