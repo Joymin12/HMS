@@ -46,6 +46,42 @@ public class ReservationDataManager {
         }
     }
 
+    // ==========================================================
+    // ⭐ [NEW] 투숙 상태 확인 메서드 (AddRequestPanel 유효성 검사 지원)
+    // ==========================================================
+    /**
+     * 특정 방 번호가 현재 투숙 상태(CHECKED_IN)인지 확인합니다.
+     * @param roomNumber 확인할 객실 번호
+     * @return 투숙 중이면 true, 아니면 false
+     */
+    public boolean isRoomCheckedIn(String roomNumber) {
+        // 파일 기반 로직: 모든 예약을 순회하며 해당 방 번호와 상태를 확인
+        try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",", -1);
+
+                // 데이터 길이가 최소 상태 인덱스(12)보다 길어야 합니다.
+                if (parts.length > RES_IDX_STATUS) {
+
+                    // 1. 방 번호 일치 확인 (공백 제거)
+                    boolean isRoomMatch = parts[RES_IDX_ROOM_NUM].trim().equals(roomNumber.trim());
+
+                    // 2. 상태 확인
+                    String currentStatus = parts[RES_IDX_STATUS].trim();
+
+                    if (isRoomMatch && currentStatus.equals(STATUS_CHECKED_IN)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
     // 1. 예약 저장
     public boolean saveReservation(Map<String, Object> data) {
         String datePart = new SimpleDateFormat("yyMMdd").format(new Date());
@@ -67,7 +103,8 @@ public class ReservationDataManager {
                 (String) data.get("paymentMethod"), // ⭐ 인덱스 11
                 STATUS_PENDING, // 인덱스 12
                 "",
-                (String) data.get("userId")
+                (String) data.get("userId"),
+                "0" // [NEW] 지연료 초기값 (인덱스 15)
         );
 
         try (FileWriter fw = new FileWriter(RESERVATION_FILE, true);
