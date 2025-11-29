@@ -37,20 +37,16 @@ public class LoginController {
      * @return 로그인 성공 여부 (성공: true, 실패: false)
      */
     public boolean handleLogin(String id, String pw) {
-        // 1. 사용자 인증 (UserDataManager를 통해 파일에서 사용자 정보를 찾음)
+        // 사용자 인증 (UserDataManager를 통해 파일에서 사용자 정보를 찾음)
         User loggedInUser = userMgr.findUserById(id);
-
         if (loggedInUser != null && loggedInUser.getPassword().equals(pw)) {
             // 인증 성공
             userController.setCurrentUser(loggedInUser); // UserController에 세션 정보 저장
-
-            String role = loggedInUser.getRole(); // ⭐ [핵심] ROLE 값 추출
-
-            // 2. 역할에 따른 화면 분기
+            String role = loggedInUser.getRole(); // ROLE 값 추출
+            // 역할에 따른 화면 분기
             if (role.equals("admin") || role.equals("csr")) {
                 // ADMIN 또는 CSR
                 JOptionPane.showMessageDialog(null, "안녕하세요! " + loggedInUser.getName() + " 관리자님!");
-
                 //  AdminMainFrame에 4개 인자 (Controller 3개 + Role) 전달
                 new AdminMainFrame(userController, resController, roomController, role).setVisible(true);
 

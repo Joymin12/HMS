@@ -32,6 +32,7 @@ public class HMSServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println(">>> 클라이언트 접속: " + clientSocket.getInetAddress());
+                // 동시 처리를 위해 별도 스레드 생성
                 new Thread(() -> handleClient(clientSocket, userMgr, resMgr, rsMgr, roomMgr)).start();
             }
         } catch (IOException e) { e.printStackTrace(); }

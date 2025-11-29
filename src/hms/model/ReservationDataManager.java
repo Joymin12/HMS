@@ -157,34 +157,27 @@ public class ReservationDataManager {
     // 5. 예약된 방 목록
     public List<String> getBookedRooms(String inStr, String outStr) {
         List<String> booked = new ArrayList<>();
-        LocalDate checkIn = LocalDate.parse(inStr);
-        LocalDate checkOut = LocalDate.parse(outStr);
-
+        LocalDate checkIn = LocalDate.parse(inStr);//요청 체크인 날찌
+        LocalDate checkOut = LocalDate.parse(outStr);//요청 체크아웃 날짜
         //  [NEW] 자동 취소 로직에 필요한 시간 및 날짜 설정 (KST 기준)
         final LocalTime cancelTime = LocalTime.of(18, 0);
         final ZoneId kstZone = ZoneId.of("Asia/Seoul");
         final LocalDate today = LocalDate.now(kstZone);
         final LocalTime currentTime = LocalTime.now(kstZone);
-
         try (BufferedReader br = new BufferedReader(new FileReader(RESERVATION_FILE))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",", -1);
-
                 if (parts.length < RES_IDX_STATUS) continue;
-
                 String status = parts[RES_IDX_STATUS];
                 String paymentMethod = parts[RES_IDX_PAYMENT_METHOD]; // 현장결제/카드결제
-
                 // 1. 체크아웃된 방은 무시합니다. (재판매 가능)
                 if (status.equals(STATUS_CHECKED_OUT)) continue;
-
-                // ⭐ 2. [핵심 로직] PENDING 현장결제 예약에 대한 자동 취소 로직
+                //  2. [핵심 로직] PENDING 현장결제 예약에 대한 자동 취소 로직
                 // 상태가 PENDING이고, 결제 방식이 현장결제인 경우
                 if (status.equals(STATUS_PENDING) && paymentMethod.equals("현장결제")) {
                     try {
                         LocalDate rIn = LocalDate.parse(parts[RES_IDX_CHECK_IN_DATE]);
-
                         // a) 체크인 날짜가 이미 지났거나 (rIn.isBefore(today))
                         // b) 체크인 날짜가 오늘이고, 현재 시간이 18시를 넘겼다면 (rIn.isEqual(today) && currentTime.isAfter(cancelTime))
                         if (rIn.isBefore(today) || (rIn.isEqual(today) && currentTime.isAfter(cancelTime))) {
@@ -195,9 +188,6 @@ public class ReservationDataManager {
                         // 날짜 파싱 오류 발생 시, 안전하게 계속 유효한 것으로 간주 (아래 3번 로직으로 진행)
                     }
                 }
-                // ⭐ -----------------------------------------------------
-
-
                 // 3. 날짜 겹침 확인 (자동 취소되지 않은 유효한 예약 건만 진행)
                 try {
                     LocalDate rIn = LocalDate.parse(parts[RES_IDX_CHECK_IN_DATE]);

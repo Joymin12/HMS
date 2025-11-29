@@ -3,3 +3,4 @@ qwer123,aaaa,배대,010-1111-2222,0,user
 csrtest,1234,CSR,010-9999-9999,99,csr
 asdf123,aaaa,조원민,010-1111-1111,21,user
 asdf,qwer,김기현,010-1111-1111,21,user
+zxcv123,zxcv,배덩,010-1111-1111,21,user
