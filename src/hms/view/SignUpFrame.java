@@ -5,6 +5,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter; // ⭐ [NEW] WindowAdapter 임포트
+import java.awt.event.WindowEvent;   // ⭐ [NEW] WindowEvent 임포트
 import java.awt.Color;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -134,16 +136,33 @@ public class SignUpFrame extends JFrame {
                 switch (result) {
                     case 0: // 성공
                         JOptionPane.showMessageDialog(null, name + "님, 회원가입이 완료되었습니다!");
-                        new LoginFrame().setVisible(true);
+                        dispose();
+                        // ⭐️ 수정: 기존 로그인 프레임을 다시 활성화합니다.
+                        if (loginFrame != null) {
+                            loginFrame.setVisible(true);
+                        } else {
+                            // LoginFrame이 null일 경우에만 새로 생성 (LoginFrame 생성자에 문제가 없다면)
+                            // new LoginFrame().setVisible(true);
+                            JOptionPane.showMessageDialog(null, "시스템 오류: 로그인 화면 객체를 찾을 수 없습니다.");
+                        }
                         break;
                     case 1: // ID 중복
                         showError("이미 사용 중인 아이디입니다.");
+
+                        // ID 필드를 비우고 포커스를 줍니다.
+                        idField.setText("");
+                        idField.setForeground(Color.BLACK); // 플레이스홀더 색상 제거
+                        idField.requestFocusInWindow();
+
                         break;
                     case 2: // 파일 저장 실패
                         showError("시스템 오류: 파일 저장에 실패했습니다.");
                         break;
                     case 3: // 나이 형식 오류
                         showError("나이는 숫자로만 입력해주세요.");
+                        break;
+                    case 99: // 통신 오류 (UserController에서 정의한 코드)
+                        showError("서버 통신 오류가 발생했습니다. 서버가 켜져 있는지 확인해주세요.");
                         break;
                 }
             }
@@ -153,11 +172,28 @@ public class SignUpFrame extends JFrame {
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                dispose();
+                // ⭐️ [수정] 취소 시 부모 창을 다시 보이게 합니다.
+                if (loginFrame != null) {
+                    loginFrame.setVisible(true);
+                }
+                dispose(); // 이 창 닫기
             }
         });
 
+        // ⭐ [NEW] X 버튼 클릭 시 부모 창을 활성화하는 리스너 추가
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent windowEvent) {
+                // X 버튼을 눌러 창이 닫힐 때, 부모 창을 다시 보이게 합니다.
+                if (loginFrame != null) {
+                    loginFrame.setVisible(true);
+                }
+            }
+        });
+
+
         setVisible(true);
+        loginFrame.setVisible(true);
     }
 
     // --- (이하 헬퍼 메서드: 플레이스홀더 및 에러 팝업) ---
