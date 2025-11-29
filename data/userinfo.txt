@@ -1,5 +1,5 @@
 admin,admin123,관리자,010-0000-0000,99,admin
 qwer123,aaaa,배대,010-1111-2222,0,user
 csrtest,1234,CSR,010-9999-9999,99,csr
-qqqq,qqqq,이용준,010-1111-1111,0,user
-asdf123,asdf,김기현,,21,user
+asdf123,aaaa,조원민,010-1111-1111,21,user
+asdf,qwer,김기현,010-1111-1111,21,user
