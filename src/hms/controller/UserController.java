@@ -9,7 +9,7 @@ import java.util.List;
 public class UserController {
 
     private User currentlyLoggedInUser = null;
-    private String serverIp = "127.0.0.1"; // 서버 IP
+    private String serverIp = "110.46.46.92"; // 서버 IP
     private int serverPort = 5000;
 
     // 통신 헬퍼 메소드 (sendRequest)
