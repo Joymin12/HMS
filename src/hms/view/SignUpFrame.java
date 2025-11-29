@@ -5,8 +5,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter; // ⭐ [NEW] WindowAdapter 임포트
-import java.awt.event.WindowEvent;   // ⭐ [NEW] WindowEvent 임포트
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.Color;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -24,7 +24,7 @@ public class SignUpFrame extends JFrame {
     private JTextField numberField;
     private JTextField ageField;
 
-    // ⭐ [핵심 수정] LoginFrame에서 전달받을 UserController 필드
+    // LoginFrame에서 전달받을 UserController 필드
     private final UserController userController;
     private final JFrame loginFrame;
     private final String ID_PLACEHOLDER = "사용할 ID (필수)";
@@ -35,7 +35,7 @@ public class SignUpFrame extends JFrame {
     private final String AGE_PLACEHOLDER = "20";
 
 
-    // ⭐ [핵심 수정] UserController 객체를 인수로 받도록 생성자 수정
+    // UserController 객체를 인수로 받도록 생성자 수정
     public SignUpFrame(UserController userController, JFrame loginFrame) {
         this.userController = userController; // 전달받은 Controller를 필드에 저장
         this.loginFrame = loginFrame;
@@ -137,7 +137,7 @@ public class SignUpFrame extends JFrame {
                     case 0: // 성공
                         JOptionPane.showMessageDialog(null, name + "님, 회원가입이 완료되었습니다!");
                         dispose();
-                        // ⭐️ 수정: 기존 로그인 프레임을 다시 활성화합니다.
+                        // 기존 로그인 프레임을 다시 활성화합니다.
                         if (loginFrame != null) {
                             loginFrame.setVisible(true);
                         } else {
@@ -172,7 +172,7 @@ public class SignUpFrame extends JFrame {
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // ⭐️ [수정] 취소 시 부모 창을 다시 보이게 합니다.
+                // 취소 시 부모 창을 다시 보이게 합니다.
                 if (loginFrame != null) {
                     loginFrame.setVisible(true);
                 }
@@ -180,7 +180,7 @@ public class SignUpFrame extends JFrame {
             }
         });
 
-        // ⭐ [NEW] X 버튼 클릭 시 부모 창을 활성화하는 리스너 추가
+        // X 버튼 클릭 시 부모 창을 활성화하는 리스너 추가
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent windowEvent) {
